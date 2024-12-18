@@ -1,5 +1,6 @@
 import CategoryList from "@/components/ui/CategoryList";
 import Spinner from "@/components/ui/Spinner";
+import Wrapper from "@/components/ui/Wrapper";
 import { getCategories } from "@/services/apiServices";
 import { CategoryListType } from "@/services/types";
 import { useQuery } from "@tanstack/react-query";
@@ -10,13 +11,11 @@ export default function Services() {
     queryFn: getCategories,
   });
 
-  console.log(categories);
-
   if (isLoading) return <Spinner />;
 
   return (
-    <div>
+    <Wrapper>
       <CategoryList categories={categories ?? []} />
-    </div>
+    </Wrapper>
   );
 }

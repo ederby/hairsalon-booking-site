@@ -46,7 +46,7 @@ export default function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Meny</SidebarGroupLabel>
+          <SidebarGroupLabel>NAMN PÅ FÖRETAG</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {links.map((link) => (

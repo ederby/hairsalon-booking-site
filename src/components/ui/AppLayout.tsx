@@ -9,7 +9,7 @@ export default function AppLayout() {
       <AppSidebar />
       <div className="flex flex-col w-full gap-4">
         <Header />
-        <main className="px-4">
+        <main>
           <Outlet />
         </main>
       </div>
