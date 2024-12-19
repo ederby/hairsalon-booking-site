@@ -5,36 +5,55 @@ import { Input } from "./input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Textarea } from "./textarea";
+import { CategoryUpdateType } from "@/services/types";
+import { DialogClose } from "./dialog";
 
 type EditFormProps = {
   title: string;
   description: string;
-  image: string;
+  id: number;
+  mutate: (category: CategoryUpdateType) => void;
 };
+type FormSchema = z.infer<typeof formSchema>;
 
 const formSchema = z.object({
   title: z.string(),
   description: z.string(),
-  image: z.string(),
+  image: z
+    .instanceof(File)
+    .optional()
+    .refine((file) => file === undefined || file.size <= 5 * 1024 * 1024, {
+      message: "File size should be less than 5MB",
+    })
+    .refine(
+      (file) =>
+        file === undefined || ["image/jpeg", "image/png"].includes(file.type),
+      {
+        message: "Only JPEG and PNG files are allowed",
+      }
+    ),
 });
 
 export default function EditForm({
   title,
   description,
-  image,
+  id,
+  mutate,
 }: EditFormProps): JSX.Element {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title,
       description,
-      image,
+      image: undefined,
     },
     mode: "onChange",
   });
-  const { isValid, isLoading } = form.formState;
+  const { isValid, isSubmitting } = form.formState;
 
-  function onSubmit() {}
+  function onSubmit(data: FormSchema) {
+    mutate({ ...data, image: data.image, id: id });
+  }
 
   return (
     <Form {...form}>
@@ -68,19 +87,29 @@ export default function EditForm({
         <FormField
           control={form.control}
           name="image"
-          render={({ field }) => (
+          render={({ field: { value, onChange, ...fieldProps } }) => (
             <FormItem>
               <FormControl>
-                <Input placeholder="Bild..." {...field} />
+                <input
+                  className="file:bg-teal-600 file:text-teal-50 file:border-0 file:rounded file:py-2 file:px-3 hover:file:bg-teal-500 file:cursor-pointer"
+                  type="file"
+                  id={value?.name}
+                  accept="image/jpeg, image/png"
+                  onChange={(event) =>
+                    onChange(event.target.files && event.target.files[0])
+                  }
+                  {...fieldProps}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <Button className="w-full" disabled={!isValid} type="submit">
-          {isLoading ? "Laddar..." : "Ändra"}
-        </Button>
+        <DialogClose asChild>
+          <Button className="w-full" disabled={!isValid} type="submit">
+            {isSubmitting ? "Laddar..." : "Ändra"}
+          </Button>
+        </DialogClose>
       </form>
     </Form>
   );

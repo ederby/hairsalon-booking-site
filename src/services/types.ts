@@ -4,3 +4,10 @@ export type CategoryListType = {
   image: string;
   title: string;
 };
+
+export type CategoryUpdateType = {
+  description: string;
+  image: File | undefined;
+  id: number;
+  title: string;
+};

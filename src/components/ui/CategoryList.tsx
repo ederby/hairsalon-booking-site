@@ -22,6 +22,7 @@ export default function CategoryList({
         {categories.map((category) => (
           <CategoryListItem
             key={category.id}
+            id={category.id}
             title={category.title}
             description={category.description}
             image={category.image}
