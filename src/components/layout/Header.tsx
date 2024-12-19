@@ -1,4 +1,4 @@
-import CustomSidebarTrigger from "./CustomSidebarTrigger";
+import CustomSidebarTrigger from "../layout/CustomSidebarTrigger";
 
 export default function Header() {
   return (

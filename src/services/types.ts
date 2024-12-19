@@ -7,7 +7,7 @@ export type CategoryListType = {
 
 export type CategoryUpdateType = {
   description: string;
-  image: File | undefined;
-  id: number;
+  image?: File | undefined;
+  id?: number | undefined;
   title: string;
 };

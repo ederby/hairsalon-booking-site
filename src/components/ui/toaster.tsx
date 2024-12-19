@@ -22,7 +22,6 @@ export function Toaster() {
         action,
         ...props
       }) {
-        console.log(onSuccess);
         return (
           <Toast
             className={`${

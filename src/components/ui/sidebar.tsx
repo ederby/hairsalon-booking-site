@@ -209,9 +209,9 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
+            <SheetTitle className="hidden">Menu</SheetTitle>
             <SheetDescription className="hidden">Description</SheetDescription>
             <div className="flex h-full w-full flex-col">{children}</div>
-            <SheetTitle className="hidden">Menu</SheetTitle>
           </SheetContent>
         </Sheet>
       );

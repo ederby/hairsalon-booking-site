@@ -1,18 +1,26 @@
 import { z } from "zod";
-import { Button } from "./button";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "./form";
-import { Input } from "./input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Textarea } from "./textarea";
 import { CategoryUpdateType } from "@/services/types";
-import { DialogClose } from "./dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { DialogClose } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
-type EditFormProps = {
-  title: string;
-  description: string;
-  id: number;
-  mutate: (category: CategoryUpdateType) => void;
+type EditCategoryFormProps = {
+  categoryToEdit?: {
+    title?: string;
+    description?: string;
+    id?: number;
+  };
+  onHandleCategory: (category: CategoryUpdateType) => void;
 };
 type FormSchema = z.infer<typeof formSchema>;
 
@@ -34,25 +42,39 @@ const formSchema = z.object({
     ),
 });
 
-export default function EditForm({
-  title,
-  description,
-  id,
-  mutate,
-}: EditFormProps): JSX.Element {
+export default function EditCategoryForm({
+  categoryToEdit = {},
+  onHandleCategory,
+}: EditCategoryFormProps): JSX.Element {
+  const { id: isEditCategory, ...editValues } = categoryToEdit;
+  const isEditSession = Boolean(isEditCategory);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      title,
-      description,
-      image: undefined,
-    },
+    defaultValues: isEditSession
+      ? {
+          title: categoryToEdit.title,
+          description: categoryToEdit.description,
+          image: undefined,
+        }
+      : {},
     mode: "onChange",
   });
   const { isValid, isSubmitting } = form.formState;
 
   function onSubmit(data: FormSchema) {
-    mutate({ ...data, image: data.image, id: id });
+    console.log(data);
+    if (
+      data.title === editValues.title &&
+      data.description === editValues.description &&
+      !data.image
+    )
+      return;
+    if (isEditSession) {
+      onHandleCategory({ ...data, image: data.image, id: isEditCategory });
+    } else {
+      onHandleCategory({ ...data });
+    }
   }
 
   return (
@@ -106,8 +128,16 @@ export default function EditForm({
           )}
         />
         <DialogClose asChild>
-          <Button className="w-full" disabled={!isValid} type="submit">
-            {isSubmitting ? "Laddar..." : "Ändra"}
+          <Button
+            className="w-full"
+            disabled={!isValid || isSubmitting}
+            type="submit"
+          >
+            {isSubmitting
+              ? "Laddar..."
+              : isEditSession
+              ? "Ändra"
+              : "Skapa kategori"}
           </Button>
         </DialogClose>
       </form>

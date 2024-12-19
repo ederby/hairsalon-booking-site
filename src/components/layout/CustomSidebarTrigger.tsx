@@ -1,10 +1,10 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { useSidebar } from "./sidebar";
-import useMediaQuery from "@/hooks/useMediaQuery";
+import { useSidebar } from "../ui/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function CustomSidebarTrigger() {
   const { toggleSidebar, open } = useSidebar();
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useIsMobile();
 
   return (
     <div
