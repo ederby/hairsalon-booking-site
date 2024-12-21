@@ -1,12 +1,12 @@
-import { CategoryListType } from "@/services/types";
-import { Accordion } from "../../components/ui/accordion";
-import ContentHeader from "../../components/layout/ContentHeader";
-import CategoryListItem from "./CategoryListItem";
-import { Button } from "@/components/ui/button";
 import ResponsiveDialog from "@/components/layout/ResponsiveDialog";
-import EditCategoryForm from "./EditCategoryForm";
-import { useCreateCategory } from "./useCreateCategory";
 import Spinner from "@/components/layout/Spinner";
+import { Button } from "@/components/ui/button";
+import { CategoryListType } from "@/services/types";
+import ContentHeader from "../../components/layout/ContentHeader";
+import { Accordion } from "../../components/ui/accordion";
+import CategoryEditForm from "./CategoryEditForm";
+import CategoryListItem from "./CategoryListItem";
+import { useCreateCategory } from "./useCreateCategory";
 
 type CategoryListProps = {
   categories: CategoryListType[];
@@ -26,7 +26,7 @@ export default function CategoryList({
           title="Skapa en ny kategori"
           trigger={<Button variant="outline">Lägg till kategori</Button>}
         >
-          <EditCategoryForm onHandleCategory={onCreateCategory} />
+          <CategoryEditForm onHandleCategory={onCreateCategory} />
         </ResponsiveDialog>
       </ContentHeader>
 

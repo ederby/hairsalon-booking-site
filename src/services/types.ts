@@ -11,3 +11,12 @@ export type CategoryUpdateType = {
   id?: number | undefined;
   title: string;
 };
+
+export type ServicesType = {
+  categoryID: number;
+  description: string;
+  duration: number;
+  id: number;
+  price: number;
+  title: string;
+};

@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { CategoryUpdateType } from "./types";
+import { CategoryUpdateType, ServicesType } from "./types";
 
 async function uploadImageToBucket(image: File | undefined) {
   let imagePath: string | undefined;
@@ -88,3 +88,22 @@ export async function deleteCategory(id: number) {
     throw new Error("Category could not be erased.");
   }
 }
+
+export async function getServicesByCategoryID(
+  id: number
+): Promise<ServicesType[]> {
+  const { data, error } = await supabase
+    .from("services")
+    .select("*")
+    .eq("categoryID", id)
+    .order("id", { ascending: true });
+
+  if (error) {
+    console.error("Service could not be uploaded.");
+    throw new Error("Service could not be uploaded.");
+  }
+
+  return data;
+}
+
+export async function deleteService() {}

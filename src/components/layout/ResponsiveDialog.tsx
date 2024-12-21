@@ -15,13 +15,14 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
 
 type ResponsiveDialogProps = {
   title: string;
   children: React.ReactNode;
   className?: string;
   trigger?: React.ReactNode | null;
+  open?: boolean | undefined;
+  setOpen?: (open: boolean) => void;
 };
 
 export default function ResponsiveDialog({
@@ -29,10 +30,10 @@ export default function ResponsiveDialog({
   children,
   className = "",
   trigger = null,
+  open,
+  setOpen,
 }: ResponsiveDialogProps): JSX.Element {
   const isMobile = useIsMobile();
-  const [open, setOpen] = useState<boolean>(false);
-
   if (isMobile)
     return (
       <Drawer open={open} onOpenChange={setOpen}>

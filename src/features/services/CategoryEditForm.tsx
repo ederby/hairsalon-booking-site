@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-type EditCategoryFormProps = {
+type CategoryEditFormProps = {
   categoryToEdit?: {
     title?: string;
     description?: string;
@@ -42,10 +42,10 @@ const formSchema = z.object({
     ),
 });
 
-export default function EditCategoryForm({
+export default function CategoryEditForm({
   categoryToEdit = {},
   onHandleCategory,
-}: EditCategoryFormProps): JSX.Element {
+}: CategoryEditFormProps): JSX.Element {
   const { id: isEditCategory, ...editValues } = categoryToEdit;
   const isEditSession = Boolean(isEditCategory);
 

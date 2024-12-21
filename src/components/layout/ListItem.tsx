@@ -8,52 +8,64 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import CategoryEditForm from "@/features/services/CategoryEditForm";
+import CategoryListItemSkeleton from "@/features/services/CategoryListItemSkeleton";
+import {
+  CategoryListType,
+  CategoryUpdateType,
+  ServicesType,
+} from "@/services/types";
 import { CircleX, Pencil } from "lucide-react";
 import { useState } from "react";
-import CategoryEditForm from "./CategoryEditForm";
-import CategoryListItemSkeleton from "./CategoryListItemSkeleton";
-import ServiceList from "./ServiceList";
-import { useDeleteCategory } from "./useDeleteCategory";
-import { useEditCategories } from "./useEditCategories";
 
 type CategoryListItemProps = {
-  title: string;
-  description: string;
-  image: string;
-  id: number;
+  children?: React.ReactNode;
+  updateHandler: (category: CategoryUpdateType) => void;
+  deleteHandler: (id: number) => void;
+  isUpdating: boolean;
+  isDeleting: boolean;
+  data: ServicesType | CategoryListType;
 };
 
-export default function CategoryListItem({
-  title,
-  description,
-  image,
-  id,
+function hasImageProperty(
+  data: ServicesType | CategoryListType
+): data is CategoryListType {
+  return (data as CategoryListType).image !== undefined;
+}
+
+export default function ListItem({
+  data,
+  children,
+  updateHandler,
+  deleteHandler,
+  isUpdating,
+  isDeleting,
 }: CategoryListItemProps): JSX.Element {
-  const { onUpdateCategory, isUpdatingCategory } = useEditCategories();
-  const { onDeleteCategory, isDeletingCategory } = useDeleteCategory();
   const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
   const [openResponsiveDialog, setOpenResponsiveDialog] =
     useState<boolean>(false);
 
-  if (isDeletingCategory) return <Spinner />;
+  if (isDeleting) return <Spinner />;
 
   return (
     <AccordionItem
-      value={title}
+      value={data.title}
       className={`${openAlertDialog ? "bg-red-100" : ""} ${
         openResponsiveDialog ? "bg-teal-100" : ""
       } hover:bg-teal-50 px-2 relative data-[state=open]:bg-zinc-100`}
     >
       <AccordionTrigger>
-        {isUpdatingCategory ? (
+        {isUpdating ? (
           <CategoryListItemSkeleton />
         ) : (
           <div className="flex items-center gap-2">
-            <div className="h-12 w-12 min-h-12 min-w-12 rounded overflow-hidden">
-              <img src={image} alt={title} />
-            </div>
+            {hasImageProperty(data) && (
+              <div className="h-12 w-12 min-h-12 min-w-12 rounded overflow-hidden">
+                <img src={data.image} alt={data.title} />
+              </div>
+            )}
             <div className="flex flex-col">
-              <span className="text-base">{title}</span>
+              <span className="text-base">{data.title}</span>
             </div>
           </div>
         )}
@@ -61,13 +73,17 @@ export default function CategoryListItem({
 
       <ResponsiveDialog
         className="absolute right-10 top-6 h-8 w-8 rounded bg-zinc-100 text-zinc-500 hover:bg-teal-600 hover:text-teal-50 px-[10px]"
-        title={`Redigera ${title}`}
+        title={`Redigera ${data.title}`}
         open={openResponsiveDialog}
         setOpen={setOpenResponsiveDialog}
       >
         <CategoryEditForm
-          categoryToEdit={{ title, description, id }}
-          onHandleCategory={onUpdateCategory}
+          categoryToEdit={{
+            title: data.title,
+            description: data.description,
+            id: data.id,
+          }}
+          onHandleCategory={updateHandler}
         />
       </ResponsiveDialog>
 
@@ -88,12 +104,10 @@ export default function CategoryListItem({
             så försvinner också alla tjänster som är koppplade till den."
         open={openAlertDialog}
         setOpen={setOpenAlertDialog}
-        onClick={() => onDeleteCategory(id)}
+        onClick={() => deleteHandler(data.id)}
         actionText="Radera"
       />
-      <AccordionContent className="pb-0">
-        <ServiceList id={id} />
-      </AccordionContent>
+      <AccordionContent className="pb-0">{children}</AccordionContent>
     </AccordionItem>
   );
 }
