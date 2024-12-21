@@ -1,7 +1,9 @@
 import { supabase } from "./supabase";
-import { CategoryUpdateType, ServicesType } from "./types";
+import { CategoryListType, CategoryUpdateType, ServicesType } from "./types";
 
-async function uploadImageToBucket(image: File | undefined) {
+async function uploadImageToBucket(
+  image: File | undefined
+): Promise<string | undefined> {
   let imagePath: string | undefined;
 
   if (image) {
@@ -26,7 +28,7 @@ async function uploadImageToBucket(image: File | undefined) {
   return imagePath;
 }
 
-export async function getCategories() {
+export async function getCategories(): Promise<CategoryListType[]> {
   const { data, error } = await supabase
     .from("categories")
     .select("*")
@@ -40,10 +42,10 @@ export async function getCategories() {
   return data;
 }
 
-export async function updateCategories(category: CategoryUpdateType) {
+export async function updateCategories(
+  category: CategoryUpdateType
+): Promise<void> {
   const image = await uploadImageToBucket(category.image);
-
-  console.log(image);
 
   const { error } = await supabase
     .from("categories")
@@ -67,7 +69,9 @@ type CreateCategoryType = {
   image?: File | undefined;
 };
 
-export async function createCategory(category: CreateCategoryType) {
+export async function createCategory(
+  category: CreateCategoryType
+): Promise<void> {
   const image = await uploadImageToBucket(category.image);
 
   const { error } = await supabase
@@ -80,7 +84,7 @@ export async function createCategory(category: CreateCategoryType) {
   }
 }
 
-export async function deleteCategory(id: number) {
+export async function deleteCategory(id: number): Promise<void> {
   const { error } = await supabase.from("categories").delete().eq("id", id);
 
   if (error) {
@@ -106,4 +110,36 @@ export async function getServicesByCategoryID(
   return data;
 }
 
-export async function deleteService() {}
+export async function editService(service: ServicesType): Promise<void> {
+  const { error } = await supabase
+    .from("services")
+    .update({
+      title: service.title,
+      description: service.description,
+      duration: service.duration,
+      price: service.price,
+    })
+    .eq("id", service.id)
+    .select("*");
+
+  if (error) {
+    console.error("Service could not be uploaded.");
+    throw new Error("Service could not be uploaded.");
+  }
+}
+export async function deleteService(id: number): Promise<void> {
+  const { error } = await supabase.from("services").delete().eq("id", id);
+
+  if (error) {
+    if (error.code === "23503") {
+      throw new Error(
+        "Tjänsten kunde inte raderas just nu. Det finns bokningar kopplade till denna tjänsten."
+      );
+    } else {
+      console.error("Service could not be deleted.");
+      throw new Error("Tjänsten kunde inte raderas.");
+    }
+  }
+
+  return error;
+}

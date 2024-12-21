@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function CategoryListItemSkeleton() {
+export default function ListItemSkeleton() {
   return (
     <div className="flex items-center gap-2">
       <Skeleton className="h-12 w-12 rounded" />

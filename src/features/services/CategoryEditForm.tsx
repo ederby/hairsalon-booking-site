@@ -63,7 +63,6 @@ export default function CategoryEditForm({
   const { isValid, isSubmitting } = form.formState;
 
   function onSubmit(data: FormSchema) {
-    console.log(data);
     if (
       data.title === editValues.title &&
       data.description === editValues.description &&

@@ -13,7 +13,7 @@ export type CategoryUpdateType = {
 };
 
 export type ServicesType = {
-  categoryID: number;
+  categoryID?: number;
   description: string;
   duration: number;
   id: number;
