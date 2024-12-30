@@ -7,6 +7,7 @@ import { Accordion } from "../../components/ui/accordion";
 import CategoryEditForm from "./CategoryEditForm";
 import CategoryListItem from "./CategoryListItem";
 import { useCreateCategory } from "./useCreateCategory";
+import { Plus } from "lucide-react";
 
 type CategoryListProps = {
   categories: CategoryListType[];
@@ -24,7 +25,11 @@ export default function CategoryList({
         </h1>
         <ResponsiveDialog
           title="Skapa en ny kategori"
-          trigger={<Button variant="outline">Lägg till kategori</Button>}
+          trigger={
+            <Button variant="outline">
+              <Plus /> Skapa ny kategori
+            </Button>
+          }
         >
           <CategoryEditForm onHandleCategory={onCreateCategory} />
         </ResponsiveDialog>

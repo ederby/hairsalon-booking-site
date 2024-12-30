@@ -13,14 +13,14 @@ export function useCreateCategory() {
         queryClient.invalidateQueries({ queryKey: ["categories"] });
         toast({
           title: "Hurra!",
-          description: "Kategorin har uppdaterats",
+          description: "Kategorin har skapats",
           onSuccess: true,
         });
       },
       onError: () => {
         toast({
           title: "Attans!",
-          description: "Kategorin kunde inte uppdaterats",
+          description: "Kategorin kunde inte skapas",
           onSuccess: false,
         });
       },

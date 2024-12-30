@@ -16,17 +16,20 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 type ServiceEditFormProps = {
-  serviceToEdit?: {
-    title?: string;
-    description?: string;
-    id: number;
-    duration?: number;
-    price?: number;
-    categoryID?: number;
-  };
-  onHandleService: (service: ServicesType) => void;
+  serviceToEdit?: ServicesType;
+  categoryID: number;
+  onHandleService: (
+    service: ServiceToSubmit & {
+      isActive: boolean;
+      id: number;
+      categoryID: number;
+    }
+  ) => void;
 };
-type FormSchema = z.infer<typeof formSchema> & { id: number };
+type FormSchema = z.infer<typeof formSchema> & {
+  id: number;
+  isActive: boolean;
+};
 type ServiceToSubmit = {
   title: string;
   description: string;
@@ -35,10 +38,10 @@ type ServiceToSubmit = {
 };
 
 const formSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  duration: z.number(),
-  price: z.number(),
+  title: z.string().nonempty("Titel är obligatorisk"),
+  description: z.string().nonempty("Beskrivning är obligatorisk"),
+  duration: z.number().min(1, "Tidsåtgång måste vara minst 1"),
+  price: z.number().min(1, "Pris måste vara minst 1"),
 });
 
 const defaultService: FormSchema = {
@@ -47,10 +50,12 @@ const defaultService: FormSchema = {
   description: "",
   duration: 0,
   price: 0,
+  isActive: true,
 };
 
 export default function ServiceEditForm({
   serviceToEdit = defaultService,
+  categoryID,
   onHandleService,
 }: ServiceEditFormProps): JSX.Element {
   const { id: isEditService, ...editValues } = serviceToEdit;
@@ -65,7 +70,12 @@ export default function ServiceEditForm({
           duration: serviceToEdit.duration,
           price: serviceToEdit.price,
         }
-      : {},
+      : {
+          title: "",
+          description: "",
+          duration: 0,
+          price: 0,
+        },
     mode: "onChange",
   });
   const { isValid, isSubmitting } = form.formState;
@@ -81,11 +91,12 @@ export default function ServiceEditForm({
     if (isEditSession) {
       onHandleService({
         ...data,
+        isActive: true,
         id: isEditService,
-        categoryID: editValues.categoryID,
+        categoryID: editValues.categoryID || 0,
       });
     } else {
-      onHandleService({ ...data, id: isEditService });
+      onHandleService({ ...data, isActive: true, categoryID, id: -1 });
     }
   }
 
@@ -133,6 +144,7 @@ export default function ServiceEditForm({
                     type="number"
                     placeholder="Tidåtgång..."
                     {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -146,7 +158,12 @@ export default function ServiceEditForm({
               <FormItem className="flex-1">
                 <FormLabel>Pris</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="Pris..." {...field} />
+                  <Input
+                    type="number"
+                    placeholder="Pris..."
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -164,7 +181,7 @@ export default function ServiceEditForm({
               ? "Laddar..."
               : isEditSession
               ? "Ändra"
-              : "Skapa kategori"}
+              : "Skapa tjänst"}
           </Button>
         </DialogClose>
       </form>

@@ -1,5 +1,10 @@
 import { supabase } from "./supabase";
-import { CategoryListType, CategoryUpdateType, ServicesType } from "./types";
+import {
+  CategoryListType,
+  CategoryUpdateType,
+  CreateServiceType,
+  ServicesType,
+} from "./types";
 
 async function uploadImageToBucket(
   image: File | undefined
@@ -119,14 +124,14 @@ export async function editService(service: ServicesType): Promise<void> {
       duration: service.duration,
       price: service.price,
     })
-    .eq("id", service.id)
-    .select("*");
+    .eq("id", service.id);
 
   if (error) {
     console.error("Service could not be uploaded.");
     throw new Error("Service could not be uploaded.");
   }
 }
+
 export async function deleteService(id: number): Promise<void> {
   const { error } = await supabase.from("services").delete().eq("id", id);
 
@@ -140,6 +145,44 @@ export async function deleteService(id: number): Promise<void> {
       throw new Error("Tjänsten kunde inte raderas.");
     }
   }
+}
 
-  return error;
+type ToggleServiceType = {
+  id: number;
+  isActive: boolean;
+};
+export async function toggleService({
+  id,
+  isActive,
+}: ToggleServiceType): Promise<void> {
+  const { error } = await supabase
+    .from("services")
+    .update({ isActive })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Service could not be updated.");
+    throw new Error("Service could not be updated.");
+  }
+}
+
+export async function createService(service: CreateServiceType): Promise<void> {
+  const readyService = {
+    title: service.title,
+    description: service.description,
+    duration: service.duration,
+    price: service.price,
+    categoryID: service.categoryID,
+    isActive: service.isActive,
+  };
+
+  const { error } = await supabase
+    .from("services")
+    .insert([{ ...readyService }])
+    .select();
+  if (error) {
+    console.log(error.message);
+    console.error("Service could not be created.");
+    throw new Error("Service could not be created.");
+  }
 }

@@ -54,11 +54,11 @@ export default function CategoryListItem({
       value={title}
       className={`${openAlertDialog ? "bg-red-100" : ""} ${
         openResponsiveDialog ? "bg-teal-100" : ""
-      } hover:bg-teal-50 px-2 relative data-[state=open]:bg-zinc-100`}
+      } hover:bg-teal-50 relative data-[state=open]:bg-zinc-100 px-2 data-[state=open]:rounded`}
     >
       <AccordionTrigger>
         {isUpdatingCategory ? (
-          <ListItemSkeleton />
+          <ListItemSkeleton hasImage={true} />
         ) : (
           <div className="flex items-center gap-2">
             <div className="h-12 w-12 min-h-12 min-w-12 rounded overflow-hidden bg-zinc-200 flex justify-center items-center">
