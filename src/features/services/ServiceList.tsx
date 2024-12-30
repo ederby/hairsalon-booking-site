@@ -1,12 +1,30 @@
 import ResponsiveDialog from "@/components/layout/ResponsiveDialog";
 import { Button } from "@/components/ui/button";
+import {
+  closestCorners,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  MouseSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ServiceEditForm from "./ServiceEditForm";
 import ServiceListItem from "./ServiceListItem";
 import { useCreateService } from "./useCreateService";
 import { useServices } from "./useServices";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useChangeOrderServices } from "./useChangeOrderServices";
 
 type ServiceListProps = {
   id: number;
@@ -20,20 +38,76 @@ export default function ServiceList({ id }: ServiceListProps): JSX.Element {
     if (a.isActive === b.isActive) return 0;
     return a.isActive ? -1 : 1;
   });
+  const [dragableServices, setDragableServices] = useState(
+    sortedServices ?? []
+  );
   const { onCreateService } = useCreateService();
   const [animationParent] = useAutoAnimate();
 
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: {
+      distance: 10,
+    },
+  });
+  const keyboardSensor = useSensor(KeyboardSensor, {
+    coordinateGetter: sortableKeyboardCoordinates,
+  });
+  const sensors = useSensors(
+    mouseSensor,
+    keyboardSensor,
+    useSensor(TouchSensor),
+    useSensor(PointerSensor)
+  );
+  const { onChangeOrderServices } = useChangeOrderServices();
+
+  useEffect(() => {
+    setDragableServices(sortedServices ?? []);
+  }, [sortedServices]);
+
+  function handleDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+
+    if (!over || active.id === over.id) return;
+
+    setDragableServices((services) => {
+      const originalPos = services.findIndex(
+        (service) => service.id === Number(active.id)
+      );
+      const newPos = services.findIndex(
+        (service) => service.id === Number(over.id)
+      );
+
+      if (originalPos === -1 || newPos === -1) return services;
+
+      const updatedServices = arrayMove(services, originalPos, newPos);
+      onChangeOrderServices(updatedServices);
+      return arrayMove(services, originalPos, newPos);
+    });
+  }
+
   return (
     <div className="flex flex-col">
-      {services?.length ? (
-        <ul ref={animationParent} className="rounded overflow-hidden">
-          {sortedServices?.map((service) => (
-            <ServiceListItem key={service.id} service={service} />
-          ))}
-        </ul>
-      ) : (
-        <span>Det finns inga tjänster till denna kategorien än.</span>
-      )}
+      <DndContext
+        sensors={sensors}
+        onDragEnd={handleDragEnd}
+        onDragStart={() => console.log("Start")}
+        collisionDetection={closestCorners}
+      >
+        <SortableContext
+          items={dragableServices.map((service) => service.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {dragableServices.length ? (
+            <ul ref={animationParent} className="rounded overflow-hidden">
+              {dragableServices.map((service) => (
+                <ServiceListItem key={service.id} service={service} />
+              ))}
+            </ul>
+          ) : (
+            <span>Det finns inga tjänster till denna kategorien än.</span>
+          )}
+        </SortableContext>
+      </DndContext>
 
       <Button
         onClick={() => setOpenResponsiveDialog((s) => !s)}

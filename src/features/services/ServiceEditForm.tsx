@@ -14,6 +14,7 @@ import { ServicesType } from "@/services/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useServices } from "./useServices";
 
 type ServiceEditFormProps = {
   serviceToEdit?: ServicesType;
@@ -23,12 +24,14 @@ type ServiceEditFormProps = {
       isActive: boolean;
       id: number;
       categoryID: number;
+      order: number;
     }
   ) => void;
 };
 type FormSchema = z.infer<typeof formSchema> & {
   id: number;
   isActive: boolean;
+  order: number;
 };
 type ServiceToSubmit = {
   title: string;
@@ -51,6 +54,7 @@ const defaultService: FormSchema = {
   duration: 0,
   price: 0,
   isActive: true,
+  order: 0,
 };
 
 export default function ServiceEditForm({
@@ -60,6 +64,7 @@ export default function ServiceEditForm({
 }: ServiceEditFormProps): JSX.Element {
   const { id: isEditService, ...editValues } = serviceToEdit;
   const isEditSession = Boolean(isEditService);
+  const { services } = useServices(categoryID);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -94,9 +99,16 @@ export default function ServiceEditForm({
         isActive: true,
         id: isEditService,
         categoryID: editValues.categoryID || 0,
+        order: editValues.order,
       });
     } else {
-      onHandleService({ ...data, isActive: true, categoryID, id: -1 });
+      onHandleService({
+        ...data,
+        isActive: true,
+        categoryID,
+        id: -1,
+        order: services!.length + 1,
+      });
     }
   }
 

@@ -2,16 +2,17 @@ import AlertDialogCustom from "@/components/layout/AlertDialogCustom";
 import DropdownMenuCustom from "@/components/layout/DropdownMenuCustom";
 import ListItemSkeleton from "@/components/layout/ListItemSkeleton";
 import ResponsiveDialog from "@/components/layout/ResponsiveDialog";
-// import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { ServicesType } from "@/services/types";
-import { CircleX, Pencil } from "lucide-react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { CircleX, GripVertical, Pencil } from "lucide-react";
 import { useState } from "react";
 import ServiceEditForm from "./ServiceEditForm";
 import { useDeleteService } from "./useDeleteService";
 import { useEditService } from "./useEditService";
 import { useToggleService } from "./useToggleService";
-import { Switch } from "@/components/ui/switch";
 
 type ServiceListItemProps = {
   service: ServicesType;
@@ -25,42 +26,49 @@ export default function ServiceListItem({
   const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
   const { onEditService, isEditingService } = useEditService();
   const { onDeleteService, isDeletingService } = useDeleteService();
-  const { onToggleService } = useToggleService();
+  const { onToggleService: toggleService } = useToggleService();
+
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: service.id });
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform),
+  };
 
   function handleChecked(value: boolean) {
-    onToggleService({ id: service.id, isActive: value });
+    toggleService({ id: service.id, isActive: value });
   }
 
   return (
     <li
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      style={style}
       className={`${
         openResponsiveDialog
           ? "bg-teal-100"
           : openAlertDialog
           ? "bg-red-100"
           : "odd:bg-zinc-50"
-      } flex justify-between items-center w-full py-4 px-3 border-b first:border-t border-zinc-200 border-l border-r transition-all first:rounded-t last:rounded-b`}
+      } flex justify-between items-center w-full py-4 px-3 border-b first:border-t border-zinc-200 border-l border-r transition-all first:rounded-t last:rounded-b touch-none relative overflow-hidden`}
     >
-      <div className="flex gap-2 items-center">
+      <div className="absolute top-0 left-0 bottom-0 border-r flex justify-center items-center cursor-move">
+        <GripVertical strokeWidth={1} color="#71717a" />
+      </div>
+      <div data-no-dnd="true" className="flex gap-2 items-center ml-6">
         {isDeletingService || isEditingService ? (
           <ListItemSkeleton hasImage={false} />
         ) : (
           <>
-            {/* <Checkbox
-              checked={service.isActive}
-              onCheckedChange={handleChecked}
-              id="terms"
-              className={`${
-                !service.isActive ? "border-zinc-400" : ""
-              } data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600 shadow-none`}
-            /> */}
             <Switch
               checked={service.isActive}
               onCheckedChange={handleChecked}
+              // onClick={handleSwitchClick}
               className="data-[state=checked]:bg-teal-600"
             />
             <span className={`${!service.isActive ? "text-zinc-600" : ""}`}>
-              {service.title}
+              {service.id}: {service.title}
             </span>
           </>
         )}

@@ -105,7 +105,7 @@ export async function getServicesByCategoryID(
     .from("services")
     .select("*")
     .eq("categoryID", id)
-    .order("id", { ascending: true });
+    .order("order", { ascending: true });
 
   if (error) {
     console.error("Service could not be uploaded.");
@@ -184,5 +184,16 @@ export async function createService(service: CreateServiceType): Promise<void> {
     console.log(error.message);
     console.error("Service could not be created.");
     throw new Error("Service could not be created.");
+  }
+}
+
+export async function changeOrderServices(services: ServicesType[]) {
+  const { error } = await supabase
+    .from("services")
+    .upsert(services.map((service, i) => ({ ...service, order: i })));
+
+  if (error) {
+    console.error("Services could not be updated.");
+    throw new Error("Services could not be updated.");
   }
 }

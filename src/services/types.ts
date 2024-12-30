@@ -20,6 +20,7 @@ export type ServicesType = {
   price: number;
   title: string;
   isActive: boolean;
+  order: number;
 };
 
 export type CreateServiceType = {
