@@ -46,17 +46,24 @@ export default function ServiceList({ id }: ServiceListProps): JSX.Element {
 
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
-      distance: 10,
+      distance: 20,
     },
   });
   const keyboardSensor = useSensor(KeyboardSensor, {
     coordinateGetter: sortableKeyboardCoordinates,
   });
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: {
+      delay: 200,
+      tolerance: 6,
+    },
+  });
+  const pointerSensor = useSensor(PointerSensor);
   const sensors = useSensors(
     mouseSensor,
     keyboardSensor,
-    useSensor(TouchSensor),
-    useSensor(PointerSensor)
+    touchSensor,
+    pointerSensor
   );
   const { onChangeOrderServices } = useChangeOrderServices();
 
@@ -90,7 +97,6 @@ export default function ServiceList({ id }: ServiceListProps): JSX.Element {
       <DndContext
         sensors={sensors}
         onDragEnd={handleDragEnd}
-        onDragStart={() => console.log("Start")}
         collisionDetection={closestCorners}
       >
         <SortableContext
@@ -98,13 +104,15 @@ export default function ServiceList({ id }: ServiceListProps): JSX.Element {
           strategy={verticalListSortingStrategy}
         >
           {dragableServices.length ? (
-            <ul ref={animationParent} className="rounded overflow-hidden">
+            <ul ref={animationParent} className="rounded overflow-hidden ml-6">
               {dragableServices.map((service) => (
                 <ServiceListItem key={service.id} service={service} />
               ))}
             </ul>
           ) : (
-            <span>Det finns inga tjänster till denna kategorien än.</span>
+            <span className="ml-6">
+              Det finns inga tjänster till denna kategorien än.
+            </span>
           )}
         </SortableContext>
       </DndContext>
@@ -112,7 +120,7 @@ export default function ServiceList({ id }: ServiceListProps): JSX.Element {
       <Button
         onClick={() => setOpenResponsiveDialog((s) => !s)}
         variant="outline"
-        className="my-4"
+        className="my-4 ml-6"
       >
         <Plus /> Skapa ny tjänst
       </Button>

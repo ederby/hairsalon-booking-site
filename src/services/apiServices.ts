@@ -37,7 +37,7 @@ export async function getCategories(): Promise<CategoryListType[]> {
   const { data, error } = await supabase
     .from("categories")
     .select("*")
-    .order("id", { ascending: true });
+    .order("order", { ascending: true });
 
   if (error) {
     console.error("Services could not be loaded.");
@@ -98,6 +98,17 @@ export async function deleteCategory(id: number): Promise<void> {
   }
 }
 
+export async function changeOrderCategories(categories: CategoryListType[]) {
+  const { error } = await supabase
+    .from("categories")
+    .upsert(categories.map((category, i) => ({ ...category, order: i })));
+
+  if (error) {
+    console.error("Kategorin kunde inte flyttas.");
+    throw new Error("Kategorin kunde inte flyttas.");
+  }
+}
+
 export async function getServicesByCategoryID(
   id: number
 ): Promise<ServicesType[]> {
@@ -108,8 +119,8 @@ export async function getServicesByCategoryID(
     .order("order", { ascending: true });
 
   if (error) {
-    console.error("Service could not be uploaded.");
-    throw new Error("Service could not be uploaded.");
+    console.error("Tjänsten kunde inte hämtas.");
+    throw new Error("Tjänsten kunde inte hämtas.");
   }
 
   return data;
@@ -127,8 +138,8 @@ export async function editService(service: ServicesType): Promise<void> {
     .eq("id", service.id);
 
   if (error) {
-    console.error("Service could not be uploaded.");
-    throw new Error("Service could not be uploaded.");
+    console.error("Tjänsten kunde inte laddas upp.");
+    throw new Error("Tjänsten kunde inte laddas upp.");
   }
 }
 
@@ -162,7 +173,7 @@ export async function toggleService({
 
   if (error) {
     console.error("Service could not be updated.");
-    throw new Error("Service could not be updated.");
+    throw new Error("Tjänsten kunde inte uppdateras.");
   }
 }
 
@@ -182,8 +193,8 @@ export async function createService(service: CreateServiceType): Promise<void> {
     .select();
   if (error) {
     console.log(error.message);
-    console.error("Service could not be created.");
-    throw new Error("Service could not be created.");
+    console.error("Tjänsten kunde inte skapas.");
+    throw new Error("Tjänsten kunde inte skapas.");
   }
 }
 
@@ -193,7 +204,7 @@ export async function changeOrderServices(services: ServicesType[]) {
     .upsert(services.map((service, i) => ({ ...service, order: i })));
 
   if (error) {
-    console.error("Services could not be updated.");
-    throw new Error("Services could not be updated.");
+    console.error("Tjänsten kunde inte flyttas.");
+    throw new Error("Tjänsten kunde inte flyttas.");
   }
 }

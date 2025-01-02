@@ -42,8 +42,6 @@ export default function ServiceListItem({
   return (
     <li
       ref={setNodeRef}
-      {...attributes}
-      {...listeners}
       style={style}
       className={`${
         openResponsiveDialog
@@ -51,9 +49,13 @@ export default function ServiceListItem({
           : openAlertDialog
           ? "bg-red-100"
           : "odd:bg-zinc-50"
-      } flex justify-between items-center w-full py-4 px-3 border-b first:border-t border-zinc-200 border-l border-r transition-all first:rounded-t last:rounded-b touch-none relative overflow-hidden`}
+      } flex justify-between items-center w-full py-4 px-3 border-b first:border-t border-zinc-200 border-l border-r transition-all first:rounded-t last:rounded-b relative overflow-hidden`}
     >
-      <div className="absolute top-0 left-0 bottom-0 border-r flex justify-center items-center cursor-move">
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-0 left-0 bottom-0 border-r flex justify-center items-center cursor-move touch-none"
+      >
         <GripVertical strokeWidth={1} color="#71717a" />
       </div>
       <div data-no-dnd="true" className="flex gap-2 items-center ml-6">
@@ -64,7 +66,6 @@ export default function ServiceListItem({
             <Switch
               checked={service.isActive}
               onCheckedChange={handleChecked}
-              // onClick={handleSwitchClick}
               className="data-[state=checked]:bg-teal-600"
             />
             <span className={`${!service.isActive ? "text-zinc-600" : ""}`}>

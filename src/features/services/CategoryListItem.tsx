@@ -8,7 +8,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { CircleX, Pencil } from "lucide-react";
+import { CircleX, GripVertical, Pencil } from "lucide-react";
 import { useState } from "react";
 import CategoryEditForm from "./CategoryEditForm";
 import ListItemSkeleton from "../../components/layout/ListItemSkeleton";
@@ -17,6 +17,8 @@ import { useDeleteCategory } from "./useDeleteCategory";
 import { useEditCategories } from "./useEditCategories";
 import { useQueryClient } from "@tanstack/react-query";
 import { getServicesByCategoryID } from "@/services/apiServices";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type CategoryListItemProps = {
   title: string;
@@ -37,7 +39,14 @@ export default function CategoryListItem({
   const [openResponsiveDialog, setOpenResponsiveDialog] =
     useState<boolean>(false);
   const queryClient = useQueryClient();
-  const placeholderImageLetter = title.split("").at(0);
+  const placeholderImageLetter = title.split("").at(0)?.toUpperCase();
+
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform),
+  };
 
   function handleOnMouseEnter() {
     queryClient.prefetchQuery({
@@ -50,28 +59,39 @@ export default function CategoryListItem({
 
   return (
     <AccordionItem
+      ref={setNodeRef}
+      style={style}
       onMouseEnter={handleOnMouseEnter}
       value={title}
       className={`${openAlertDialog ? "bg-red-100" : ""} ${
         openResponsiveDialog ? "bg-teal-100" : ""
-      } hover:bg-teal-50 relative data-[state=open]:bg-zinc-100 px-2 data-[state=open]:rounded`}
+      } hover:bg-teal-50 relative data-[state=open]:bg-zinc-100 px-2 border-b last:border-b-0`}
     >
       <AccordionTrigger>
         {isUpdatingCategory ? (
           <ListItemSkeleton hasImage={true} />
         ) : (
-          <div className="flex items-center gap-2">
-            <div className="h-12 w-12 min-h-12 min-w-12 rounded overflow-hidden bg-zinc-200 flex justify-center items-center">
-              {image ? (
-                <img src={image} alt={title} />
-              ) : (
-                <span className="text-3xl text-zinc-50 no-underline">
-                  {placeholderImageLetter}
-                </span>
-              )}
+          <div>
+            <div
+              {...attributes}
+              {...listeners}
+              className="absolute top-0 left-0 bottom-0 border-r flex justify-center items-center cursor-move touch-none"
+            >
+              <GripVertical strokeWidth={1} color="#71717a" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-base">{title}</span>
+            <div className="flex items-center gap-2">
+              <div className="h-12 w-12 min-h-12 min-w-12 ml-6 rounded overflow-hidden bg-zinc-200 flex justify-center items-center">
+                {image ? (
+                  <img src={image} alt={title} />
+                ) : (
+                  <span className="text-3xl text-zinc-50 no-underline">
+                    {placeholderImageLetter}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-base">{title}</span>
+              </div>
             </div>
           </div>
         )}
@@ -89,7 +109,7 @@ export default function CategoryListItem({
         />
       </ResponsiveDialog>
 
-      <DropdownMenuCustom className="absolute right-10 top-6">
+      <DropdownMenuCustom className="absolute right-8 top-6">
         <DropdownMenuItem onSelect={() => setOpenResponsiveDialog((s) => !s)}>
           <Pencil />
           Redigera

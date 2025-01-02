@@ -37,7 +37,7 @@ const formSchema = z.object({
       (file) =>
         file === undefined || ["image/jpeg", "image/png"].includes(file.type),
       {
-        message: "Only JPEG and PNG files are allowed",
+        message: "Använd filformaten .jpeg eller .png",
       }
     ),
 });
@@ -57,7 +57,11 @@ export default function CategoryEditForm({
           description: categoryToEdit.description,
           image: undefined,
         }
-      : {},
+      : {
+          title: "",
+          description: "",
+          image: undefined,
+        },
     mode: "onChange",
   });
   const { isValid, isSubmitting } = form.formState;

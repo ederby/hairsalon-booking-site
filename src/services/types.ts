@@ -3,6 +3,7 @@ export type CategoryListType = {
   id: number;
   image: string;
   title: string;
+  order: number;
 };
 
 export type CategoryUpdateType = {
