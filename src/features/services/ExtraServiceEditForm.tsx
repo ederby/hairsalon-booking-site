@@ -16,6 +16,7 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useCategories } from "./useCategories";
 import { useCreateExtraService } from "./useCreateExtraService";
+import { useEditExtraService } from "./useEditExtraService";
 
 const formSchema = z.object({
   title: z.string().nonempty("Titel är obligatorisk"),
@@ -24,16 +25,34 @@ const formSchema = z.object({
   categoryIDs: z.array(z.number()).nonempty("Välj minst en kategori"),
 });
 
-export default function ExtraServiceEditForm(): JSX.Element {
-  const [categoriesActive, setCategoriesActive] = useState<number[]>([]);
+type ExtraServiceEditFormProps = {
+  extraServiceToEdit?: {
+    id?: number;
+    title?: string;
+    duration?: number;
+    price?: number;
+    categoryIDs?: number[];
+  };
+};
+
+export default function ExtraServiceEditForm({
+  extraServiceToEdit = {},
+}: ExtraServiceEditFormProps): JSX.Element {
+  const [categoriesActive, setCategoriesActive] = useState<number[]>(
+    extraServiceToEdit.categoryIDs || []
+  );
   const { categories } = useCategories();
   const { onCreateExtraService } = useCreateExtraService();
+  const { id: isEditExtraService, ...editValues } = extraServiceToEdit;
+  const isEditSession = Boolean(isEditExtraService);
+  const { onEditExtraService } = useEditExtraService();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      duration: 0,
-      price: 0,
+      title: extraServiceToEdit.title || "",
+      duration: extraServiceToEdit.duration || 0,
+      price: extraServiceToEdit.price || 0,
       categoryIDs: categoriesActive,
     },
     mode: "onChange",
@@ -41,8 +60,22 @@ export default function ExtraServiceEditForm(): JSX.Element {
   const { isValid, isSubmitting } = form.formState;
 
   function onSubmit(data: Omit<ExtraservicesType, "id">) {
-    console.log(data);
-    onCreateExtraService(data);
+    const { categoryIDs, duration, price, title } = data;
+    console.log(categoryIDs);
+
+    if (
+      duration === editValues.duration &&
+      title === editValues.title &&
+      price === editValues.price &&
+      categoryIDs.toString() === editValues.categoryIDs?.toString()
+    )
+      return;
+
+    if (isEditSession) {
+      onEditExtraService({ ...data, id: isEditExtraService ?? -1 });
+    } else {
+      onCreateExtraService(data);
+    }
   }
 
   return (
@@ -143,13 +176,12 @@ export default function ExtraServiceEditForm(): JSX.Element {
                         {categories?.map((category) => (
                           <ToggleGroupItem
                             key={category.id}
-                            variant="outline"
                             size="lg"
                             value={category.title}
                             aria-label={category.title}
                             className={`${
                               categoriesActive.includes(category.id)
-                                ? "bg-teal-600 hover:bg-teal-600 text-teal-50 hover:text-teal-50"
+                                ? "bg-amber-400 text-amber-900 hover:bg-amber-400 hover:text-amber-900"
                                 : ""
                             }`}
                           >
@@ -172,7 +204,11 @@ export default function ExtraServiceEditForm(): JSX.Element {
             disabled={!isValid || isSubmitting}
             type="submit"
           >
-            {isSubmitting ? "Laddar..." : "Skapa tilläggstjänst"}
+            {isSubmitting
+              ? "Laddar..."
+              : isEditSession
+              ? "Redigera tilläggstjänst"
+              : "Skapa tilläggstjänst"}
           </Button>
         </DialogClose>
       </form>

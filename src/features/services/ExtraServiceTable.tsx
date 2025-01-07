@@ -39,8 +39,8 @@ export default function ExtraServiceTable() {
             <TableHead colSpan={2} className="w-[100px]">
               Namn
             </TableHead>
-            <TableHead>Pris</TableHead>
-            <TableHead>Varaktighet</TableHead>
+            <TableHead className="text-right">Pris</TableHead>
+            <TableHead className="text-right">Varaktighet</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

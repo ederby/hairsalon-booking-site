@@ -274,7 +274,10 @@ export async function editStaffCategories({
 }
 
 export async function getExtraServices(): Promise<ExtraservicesType[]> {
-  const { data, error } = await supabase.from("extraservices").select("*");
+  const { data, error } = await supabase
+    .from("extraservices")
+    .select("*")
+    .order("id", { ascending: true });
 
   if (error) {
     console.error("Tilläggstjänster kunde inte hämtas.");
@@ -298,6 +301,35 @@ export async function createExtraService(
   }
 
   return data;
+}
+
+export async function deleteExtraService(id: number): Promise<void> {
+  const { error } = await supabase.from("extraservices").delete().eq("id", id);
+
+  if (error) {
+    console.error("Tilläggstjänster kunde inte raderas.");
+    throw new Error("Tilläggstjänster kunde inte raderas.");
+  }
+}
+
+export async function editExtraService(
+  extraService: ExtraservicesType
+): Promise<void> {
+  const { title, price, duration, id, categoryIDs } = extraService;
+  const { error } = await supabase
+    .from("extraservices")
+    .update({
+      title,
+      price,
+      duration,
+      categoryIDs,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Tilläggstjänster kunde inte uppdateras.");
+    throw new Error("Tilläggstjänster kunde inte uppdateras.");
+  }
 }
 
 //=HELP FUNCTIONS========================================================================
