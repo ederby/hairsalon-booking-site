@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogClose } from "@/components/ui/dialog";
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -15,11 +15,11 @@ import { useStaff } from "@/hooks/useStaff";
 import { useStaffByCategoryID } from "@/hooks/useStaffByCategoryID";
 import { CategoryEditType } from "@/services/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useEffect, useMemo } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useCategories } from "./useCategories";
-import { useEffect, useMemo } from "react";
-import { useEditStaffCategories } from "./useeditStaffCategories";
+import { useEditStaffCategories } from "./useEditStaffCategories";
 
 type CategoryEditFormProps = {
   categoryToEdit?: {
@@ -129,13 +129,14 @@ export default function CategoryEditForm({
   if (fetchingStaffByCategoryID) return <Spinner />;
 
   return (
-    <Form {...form}>
+    <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <FormField
           control={form.control}
           name="title"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Titel</FormLabel>
               <FormControl>
                 <Input placeholder="Titel..." {...field} />
               </FormControl>
@@ -149,6 +150,7 @@ export default function CategoryEditForm({
           name="description"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Beskrivning</FormLabel>
               <FormControl>
                 <Textarea placeholder="Beskrivning..." {...field} />
               </FormControl>
@@ -162,6 +164,7 @@ export default function CategoryEditForm({
           name="image"
           render={({ field: { value, onChange, ...fieldProps } }) => (
             <FormItem>
+              <FormLabel className="block mb-1">Välj en bild</FormLabel>
               <FormControl>
                 <input
                   className="file:bg-teal-600 file:text-teal-50 file:border-0 file:rounded file:py-2 file:px-3 hover:file:bg-teal-500 file:cursor-pointer"
@@ -184,6 +187,7 @@ export default function CategoryEditForm({
           name="staff"
           render={() => (
             <FormItem>
+              <FormLabel>Personal</FormLabel>
               <FormControl>
                 <div className="space-y-2">
                   {staff
@@ -237,7 +241,7 @@ export default function CategoryEditForm({
           </Button>
         </DialogClose>
       </form>
-    </Form>
+    </FormProvider>
   );
 }
 //------>

@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DialogClose } from "@/components/ui/dialog";
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -12,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ServicesType } from "@/services/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useServices } from "./useServices";
 
@@ -113,7 +112,7 @@ export default function ServiceEditForm({
   }
 
   return (
-    <Form {...form}>
+    <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <FormField
           control={form.control}
@@ -197,6 +196,6 @@ export default function ServiceEditForm({
           </Button>
         </DialogClose>
       </form>
-    </Form>
+    </FormProvider>
   );
 }

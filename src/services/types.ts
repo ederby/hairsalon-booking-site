@@ -45,3 +45,11 @@ export type StaffType = {
     [date: string]: string[];
   };
 };
+
+export type ExtraservicesType = {
+  id: number;
+  title: string;
+  duration: number;
+  price: number;
+  categoryIDs: number[];
+};

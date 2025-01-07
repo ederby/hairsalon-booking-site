@@ -4,6 +4,7 @@ import {
   CategoryEditType,
   CreateServiceType,
   ServicesType,
+  ExtraservicesType,
 } from "./types";
 
 async function uploadImageToBucket(
@@ -270,6 +271,33 @@ export async function editStaffCategories({
 
   await Promise.all(staff.map((s) => setStaffCategory(s, isEditCategory)));
   if (staff.length >= 2) await setStaffCategory(-1, isEditCategory);
+}
+
+export async function getExtraServices(): Promise<ExtraservicesType[]> {
+  const { data, error } = await supabase.from("extraservices").select("*");
+
+  if (error) {
+    console.error("Tilläggstjänster kunde inte hämtas.");
+    throw new Error("Tilläggstjänster kunde inte hämtas.");
+  }
+
+  return data;
+}
+
+export async function createExtraService(
+  extraService: Omit<ExtraservicesType, "id">
+) {
+  const { data, error } = await supabase
+    .from("extraservices")
+    .insert([{ ...extraService }])
+    .select();
+
+  if (error) {
+    console.error("Tilläggstjänster kunde inte skapas.");
+    throw new Error("Tilläggstjänster kunde inte skapas.");
+  }
+
+  return data;
 }
 
 //=HELP FUNCTIONS========================================================================

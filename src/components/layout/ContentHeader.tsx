@@ -5,5 +5,7 @@ type ContentHeaderType = {
 export default function ContentHeader({
   children,
 }: ContentHeaderType): JSX.Element {
-  return <div className="mb-2 flex justify-between">{children}</div>;
+  return (
+    <div className="mb-2 flex justify-between items-center">{children}</div>
+  );
 }

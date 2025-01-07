@@ -8,7 +8,7 @@ export default function AppLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <div className="flex flex-col w-full gap-4">
+      <div className="flex flex-col w-full">
         <Header />
         <main>
           <Outlet />

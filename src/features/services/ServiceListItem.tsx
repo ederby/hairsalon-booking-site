@@ -69,7 +69,7 @@ export default function ServiceListItem({
               className="data-[state=checked]:bg-teal-600"
             />
             <span className={`${!service.isActive ? "text-zinc-600" : ""}`}>
-              {service.id}: {service.title}
+              {service.title}
             </span>
           </>
         )}
