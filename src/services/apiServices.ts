@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 import {
   CategoryListType,
-  CategoryUpdateType,
+  CategoryEditType,
   CreateServiceType,
   ServicesType,
 } from "./types";
@@ -47,8 +47,8 @@ export async function getCategories(): Promise<CategoryListType[]> {
   return data;
 }
 
-export async function updateCategories(
-  category: CategoryUpdateType
+export async function editCategories(
+  category: CategoryEditType
 ): Promise<void> {
   const image = await uploadImageToBucket(category.image);
 
@@ -72,6 +72,14 @@ type CreateCategoryType = {
   title: string;
   description: string;
   image?: File | undefined;
+  staff: number[];
+};
+type CreateCategoryDataType = {
+  id: number;
+  description: string;
+  title: string;
+  order: null;
+  image: string | null;
 };
 
 export async function createCategory(
@@ -79,26 +87,50 @@ export async function createCategory(
 ): Promise<void> {
   const image = await uploadImageToBucket(category.image);
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("categories")
-    .insert([{ ...category, image }]);
+    .insert([
+      { description: category.description, title: category.title, image },
+    ])
+    .select();
 
   if (error) {
     console.error("Category could not be uploaded.");
     throw new Error("Category could not be uploaded.");
   }
+
+  const categoryData = data as unknown as CreateCategoryDataType[];
+  category.staff.map((s) => setStaffCategory(s, categoryData[0].id));
+  if (category.staff.length >= 2) setStaffCategory(-1, categoryData[0].id);
 }
 
 export async function deleteCategory(id: number): Promise<void> {
-  const { error } = await supabase.from("categories").delete().eq("id", id);
+  const { error: servicesError } = await supabase
+    .from("services")
+    .delete()
+    .eq("categoryID", id);
 
-  if (error) {
+  if (servicesError) {
+    console.error("Category could not be erased.");
+    throw new Error("Category could not be erased.");
+  }
+
+  deleteStaffCategories(id);
+
+  const { error: categoriesError } = await supabase
+    .from("categories")
+    .delete()
+    .eq("id", id);
+
+  if (categoriesError) {
     console.error("Category could not be erased.");
     throw new Error("Category could not be erased.");
   }
 }
 
-export async function changeOrderCategories(categories: CategoryListType[]) {
+export async function changeOrderCategories(
+  categories: CategoryListType[]
+): Promise<void> {
   const { error } = await supabase
     .from("categories")
     .upsert(categories.map((category, i) => ({ ...category, order: i })));
@@ -192,13 +224,14 @@ export async function createService(service: CreateServiceType): Promise<void> {
     .insert([{ ...readyService }])
     .select();
   if (error) {
-    console.log(error.message);
     console.error("Tjänsten kunde inte skapas.");
     throw new Error("Tjänsten kunde inte skapas.");
   }
 }
 
-export async function changeOrderServices(services: ServicesType[]) {
+export async function changeOrderServices(
+  services: ServicesType[]
+): Promise<void> {
   const { error } = await supabase
     .from("services")
     .upsert(services.map((service, i) => ({ ...service, order: i })));
@@ -206,5 +239,65 @@ export async function changeOrderServices(services: ServicesType[]) {
   if (error) {
     console.error("Tjänsten kunde inte flyttas.");
     throw new Error("Tjänsten kunde inte flyttas.");
+  }
+}
+
+export async function getStaffIDByCategoryID(id: number): Promise<number[]> {
+  const { data, error } = await supabase
+    .from("staff_categories")
+    .select("staff_id")
+    .eq("category_id", id)
+    .neq("staff_id", -1);
+
+  if (error) {
+    console.error("Personal kunde inte hämtas.");
+    throw new Error("Personal kunde inte hämtas.");
+  }
+
+  const filteredData = data.map((d) => d.staff_id);
+
+  return filteredData;
+}
+
+export async function editStaffCategories({
+  isEditCategory,
+  staff,
+}: {
+  isEditCategory: number;
+  staff: number[];
+}): Promise<void> {
+  await deleteStaffCategories(isEditCategory);
+
+  await Promise.all(staff.map((s) => setStaffCategory(s, isEditCategory)));
+  if (staff.length >= 2) await setStaffCategory(-1, isEditCategory);
+}
+
+//=HELP FUNCTIONS========================================================================
+
+async function setStaffCategory(
+  staff: number,
+  categoryID: number
+): Promise<void> {
+  const { error } = await supabase
+    .from("staff_categories")
+    .insert([{ staff_id: staff, category_id: categoryID }])
+    .select();
+
+  if (error) {
+    console.error("Category could not be uploaded.");
+    throw new Error("Category could not be uploaded.");
+  }
+}
+
+async function deleteStaffCategories(categoryID: number): Promise<void> {
+  const { error } = await supabase
+    .from("staff_categories")
+    .delete()
+    .eq("category_id", categoryID)
+    .select();
+
+  if (error) {
+    console.error("Category could not be erased.");
+    throw new Error("Category could not be erased.");
   }
 }

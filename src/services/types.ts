@@ -6,11 +6,13 @@ export type CategoryListType = {
   order: number;
 };
 
-export type CategoryUpdateType = {
+export type CategoryEditType = {
   description: string;
   image?: File | undefined;
   id?: number | undefined;
   title: string;
+  order?: number;
+  staff: number[];
 };
 
 export type ServicesType = {
@@ -31,4 +33,15 @@ export type CreateServiceType = {
   price: number;
   categoryID: number | undefined;
   isActive: boolean;
+};
+
+export type StaffType = {
+  id: number;
+  created_at: Date;
+  name: string;
+  role: string;
+  image: string;
+  schedule: {
+    [date: string]: string[];
+  };
 };

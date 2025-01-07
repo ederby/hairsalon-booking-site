@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { CategoryUpdateType } from "@/services/types";
+import Spinner from "@/components/layout/Spinner";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DialogClose } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -11,8 +11,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { DialogClose } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { useStaff } from "@/hooks/useStaff";
+import { useStaffByCategoryID } from "@/hooks/useStaffByCategoryID";
+import { CategoryEditType } from "@/services/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
+import { useCategories } from "./useCategories";
+import { useEffect, useMemo } from "react";
+import { useEditStaffCategories } from "./useeditStaffCategories";
 
 type CategoryEditFormProps = {
   categoryToEdit?: {
@@ -20,18 +27,18 @@ type CategoryEditFormProps = {
     description?: string;
     id?: number;
   };
-  onHandleCategory: (category: CategoryUpdateType) => void;
+  onHandleCategory: (category: CategoryEditType) => void;
 };
 type FormSchema = z.infer<typeof formSchema>;
 
 const formSchema = z.object({
-  title: z.string(),
-  description: z.string(),
+  title: z.string().nonempty("Titel är obligatorisk"),
+  description: z.string().nonempty("Beskrivning är obligatorisk"),
   image: z
     .instanceof(File)
     .optional()
     .refine((file) => file === undefined || file.size <= 5 * 1024 * 1024, {
-      message: "File size should be less than 5MB",
+      message: "Filstorleken får inte vara större än 5MB",
     })
     .refine(
       (file) =>
@@ -40,6 +47,7 @@ const formSchema = z.object({
         message: "Använd filformaten .jpeg eller .png",
       }
     ),
+  staff: z.array(z.number()).nonempty("Välj minst en person"),
 });
 
 export default function CategoryEditForm({
@@ -48,37 +56,77 @@ export default function CategoryEditForm({
 }: CategoryEditFormProps): JSX.Element {
   const { id: isEditCategory, ...editValues } = categoryToEdit;
   const isEditSession = Boolean(isEditCategory);
+  const { staff } = useStaff();
+  const { categories } = useCategories();
+  const { staffByCategoryID, fetchingStaffByCategoryID } = useStaffByCategoryID(
+    isEditCategory ?? -1
+  );
+  const { onEditStaffCategories } = useEditStaffCategories();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: isEditSession
-      ? {
-          title: categoryToEdit.title,
-          description: categoryToEdit.description,
-          image: undefined,
-        }
-      : {
-          title: "",
-          description: "",
-          image: undefined,
-        },
+    defaultValues: {
+      title: categoryToEdit.title || "",
+      description: categoryToEdit.description || "",
+      image: undefined,
+      staff: isEditSession ? staffByCategoryID : [],
+    },
     mode: "onChange",
   });
+
+  const memoizedCategoryToEdit = useMemo(
+    () => ({
+      id: categoryToEdit.id,
+      title: categoryToEdit.title,
+      description: categoryToEdit.description,
+    }),
+    [categoryToEdit.id, categoryToEdit.title, categoryToEdit.description]
+  );
+
+  const { reset } = form;
+  useEffect(() => {
+    if (isEditSession && staffByCategoryID) {
+      reset({
+        title: memoizedCategoryToEdit.title || "",
+        description: memoizedCategoryToEdit.description || "",
+        image: undefined,
+        staff: staffByCategoryID,
+      });
+    }
+  }, [staffByCategoryID, isEditSession, memoizedCategoryToEdit, reset]);
+
   const { isValid, isSubmitting } = form.formState;
 
   function onSubmit(data: FormSchema) {
+    const { description, image, title, staff } = data;
     if (
-      data.title === editValues.title &&
-      data.description === editValues.description &&
-      !data.image
+      title === editValues.title &&
+      description === editValues.description &&
+      !image &&
+      staff.every((element) => staffByCategoryID?.includes(element))
     )
       return;
     if (isEditSession) {
-      onHandleCategory({ ...data, image: data.image, id: isEditCategory });
+      onHandleCategory({
+        description,
+        title,
+        image,
+        id: isEditCategory,
+        staff,
+      });
+      onEditStaffCategories({ isEditCategory: isEditCategory ?? -1, staff });
     } else {
-      onHandleCategory({ ...data });
+      onHandleCategory({
+        description,
+        title,
+        image,
+        order: categories!.length,
+        staff,
+      });
     }
   }
+
+  if (fetchingStaffByCategoryID) return <Spinner />;
 
   return (
     <Form {...form}>
@@ -130,6 +178,51 @@ export default function CategoryEditForm({
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="staff"
+          render={() => (
+            <FormItem>
+              <FormControl>
+                <div className="space-y-2">
+                  {staff
+                    ?.filter((s) => s.id !== -1)
+                    .map((staffMember) => (
+                      <label
+                        key={staffMember.id}
+                        className="flex items-center space-x-2"
+                      >
+                        <Controller
+                          name="staff"
+                          control={form.control}
+                          render={({ field: { value, onChange } }) => (
+                            <Checkbox
+                              value={staffMember.id}
+                              defaultChecked={staffByCategoryID?.includes(
+                                staffMember.id
+                              )}
+                              checked={value?.includes(staffMember.id)}
+                              onCheckedChange={(checked) =>
+                                onChange(
+                                  checked
+                                    ? [...(value || []), staffMember.id]
+                                    : value?.filter((v) => v !== staffMember.id)
+                                )
+                              }
+                            />
+                          )}
+                        />
+                        <span>{staffMember.name}</span>
+                      </label>
+                    ))}
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <DialogClose asChild>
           <Button
             className="w-full"
@@ -147,3 +240,4 @@ export default function CategoryEditForm({
     </Form>
   );
 }
+//------>

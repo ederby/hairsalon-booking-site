@@ -8,17 +8,17 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { CircleX, GripVertical, Pencil } from "lucide-react";
-import { useState } from "react";
-import CategoryEditForm from "./CategoryEditForm";
-import ListItemSkeleton from "../../components/layout/ListItemSkeleton";
-import ServiceList from "./ServiceList";
-import { useDeleteCategory } from "./useDeleteCategory";
-import { useEditCategories } from "./useEditCategories";
-import { useQueryClient } from "@tanstack/react-query";
 import { getServicesByCategoryID } from "@/services/apiServices";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useQueryClient } from "@tanstack/react-query";
+import { CircleX, GripVertical, Pencil } from "lucide-react";
+import { useState } from "react";
+import ListItemSkeleton from "../../components/layout/ListItemSkeleton";
+import CategoryEditForm from "./CategoryEditForm";
+import ServiceList from "./ServiceList";
+import { useDeleteCategory } from "./useDeleteCategory";
+import { useEditCategories } from "./useEditCategories";
 
 type CategoryListItemProps = {
   title: string;
@@ -33,7 +33,7 @@ export default function CategoryListItem({
   image,
   id,
 }: CategoryListItemProps): JSX.Element {
-  const { onUpdateCategory, isUpdatingCategory } = useEditCategories();
+  const { onEditCategory, isEditingCategory } = useEditCategories();
   const { onDeleteCategory, isDeletingCategory } = useDeleteCategory();
   const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
   const [openResponsiveDialog, setOpenResponsiveDialog] =
@@ -68,7 +68,7 @@ export default function CategoryListItem({
       } hover:bg-teal-50 relative data-[state=open]:bg-zinc-100 px-2 border-b last:border-b-0`}
     >
       <AccordionTrigger>
-        {isUpdatingCategory ? (
+        {isEditingCategory ? (
           <ListItemSkeleton hasImage={true} />
         ) : (
           <div>
@@ -105,7 +105,7 @@ export default function CategoryListItem({
       >
         <CategoryEditForm
           categoryToEdit={{ title, description, id }}
-          onHandleCategory={onUpdateCategory}
+          onHandleCategory={onEditCategory}
         />
       </ResponsiveDialog>
 
