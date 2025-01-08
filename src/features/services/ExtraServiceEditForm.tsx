@@ -135,68 +135,67 @@ export default function ExtraServiceEditForm({
           />
         </div>
 
-        <div className="w-full overflow-hidden">
-          <FormField
-            name="categoryIDs"
-            control={form.control}
-            render={() => (
-              <FormItem className="flex-1">
-                <FormLabel>Kategorier</FormLabel>
-                <FormControl>
-                  <Controller
-                    name="categoryIDs"
-                    control={form.control}
-                    render={({ field: { value, onChange } }) => (
-                      <ToggleGroup
-                        type="multiple"
-                        value={value.map(String)}
-                        onValueChange={(newValue) => {
-                          const findCategories: number =
-                            newValue
-                              .map(
-                                (title) =>
-                                  categories?.find(
-                                    (category) => category.title === title
-                                  )?.id
-                              )
-                              .filter((id) => id !== undefined)
-                              .shift() ?? -1;
+        <FormField
+          name="categoryIDs"
+          control={form.control}
+          render={() => (
+            <FormItem className="flex-1">
+              <FormLabel>Kategorier</FormLabel>
+              <FormControl>
+                <Controller
+                  name="categoryIDs"
+                  control={form.control}
+                  render={({ field: { value, onChange } }) => (
+                    <ToggleGroup
+                      type="multiple"
+                      value={value.map(String)}
+                      onValueChange={(newValue) => {
+                        const findCategories: number =
+                          newValue
+                            .map(
+                              (title) =>
+                                categories?.find(
+                                  (category) => category.title === title
+                                )?.id
+                            )
+                            .filter((id) => id !== undefined)
+                            .shift() ?? -1;
 
-                          let newCategories: number[] = [];
-                          if (value.includes(findCategories ?? -1))
-                            newCategories = value.filter(
-                              (v) => v !== findCategories
-                            );
-                          else newCategories = [...value, findCategories];
+                        console.log(newValue);
+                        let newCategories: number[] = [];
+                        if (value.includes(findCategories ?? -1))
+                          newCategories = value.filter(
+                            (v) => v !== findCategories
+                          );
+                        else newCategories = [...value, findCategories];
 
-                          setCategoriesActive(newCategories);
-                          onChange(newCategories);
-                        }}
-                      >
-                        {categories?.map((category) => (
-                          <ToggleGroupItem
-                            key={category.id}
-                            size="lg"
-                            value={category.title}
-                            aria-label={category.title}
-                            className={`${
-                              categoriesActive.includes(category.id)
-                                ? "bg-amber-400 text-amber-900 hover:bg-amber-400 hover:text-amber-900"
-                                : ""
-                            }`}
-                          >
-                            <span>{category.title}</span>
-                          </ToggleGroupItem>
-                        ))}
-                      </ToggleGroup>
-                    )}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                        setCategoriesActive(newCategories);
+                        onChange(newCategories);
+                      }}
+                    >
+                      {categories?.map((category) => (
+                        <ToggleGroupItem
+                          key={category.id}
+                          size="lg"
+                          value={category.title}
+                          aria-label={category.title}
+                          className={`${
+                            categoriesActive.includes(category.id)
+                              ? "bg-amber-400 text-amber-900 hover:bg-amber-400 hover:text-amber-900"
+                              : ""
+                          }`}
+                        >
+                          <span>{category.title}</span>
+                        </ToggleGroupItem>
+                      ))}
+                    </ToggleGroup>
+                  )}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <DialogClose asChild>
           <Button

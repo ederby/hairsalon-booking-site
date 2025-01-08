@@ -12,7 +12,7 @@ export default function Services() {
 
   return (
     <Wrapper>
-      <Tabs defaultValue="extraservices" className="w-full flex flex-col">
+      <Tabs defaultValue="categories" className="w-full flex flex-col">
         <TabsList className="grid grid-cols-2 self-end mb-4 w-full">
           <TabsTrigger value="categories">Kategorier</TabsTrigger>
           <TabsTrigger value="extraservices">Tilläggstjänster</TabsTrigger>

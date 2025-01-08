@@ -1,6 +1,5 @@
 import Spinner from "@/components/layout/Spinner";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DialogClose } from "@/components/ui/dialog";
 import {
   FormControl,
@@ -11,11 +10,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useStaff } from "@/hooks/useStaff";
 import { useStaffByCategoryID } from "@/hooks/useStaffByCategoryID";
 import { CategoryEditType } from "@/services/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useCategories } from "./useCategories";
@@ -62,6 +62,11 @@ export default function CategoryEditForm({
     isEditCategory ?? -1
   );
   const { onEditStaffCategories } = useEditStaffCategories();
+  const [staffsActive, setStaffsActive] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (staffByCategoryID) setStaffsActive(staffByCategoryID);
+  }, [staffByCategoryID]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -99,11 +104,13 @@ export default function CategoryEditForm({
 
   function onSubmit(data: FormSchema) {
     const { description, image, title, staff } = data;
+    console.log(staff);
     if (
       title === editValues.title &&
       description === editValues.description &&
       !image &&
-      staff.every((element) => staffByCategoryID?.includes(element))
+      // staff.every((element) => staffByCategoryID?.includes(element))
+      staff.toString() === staffByCategoryID?.toString()
     )
       return;
     if (isEditSession) {
@@ -182,7 +189,7 @@ export default function CategoryEditForm({
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="staff"
           render={() => (
@@ -221,6 +228,67 @@ export default function CategoryEditForm({
                       </label>
                     ))}
                 </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        /> */}
+
+        <FormField
+          name="staff"
+          control={form.control}
+          render={() => (
+            <FormItem className="flex-1">
+              <FormLabel>Personal</FormLabel>
+              <FormControl>
+                <Controller
+                  name="staff"
+                  control={form.control}
+                  render={({ field: { value = [], onChange } }) => (
+                    <ToggleGroup
+                      type="multiple"
+                      value={value.map(String)}
+                      onValueChange={(newValue) => {
+                        const findStaff = newValue
+                          .map(
+                            (name) => staff?.find((s) => s.name === name)?.id
+                          )
+                          .filter((id) => id !== undefined) as number[];
+
+                        console.log(findStaff);
+                        console.log(value);
+
+                        let newStaffs: number[] = [];
+                        if (findStaff.length > 0) {
+                          const staffId = findStaff[0];
+                          if (value.includes(staffId)) {
+                            newStaffs = value.filter((v) => v !== staffId);
+                          } else {
+                            newStaffs = [...value, staffId];
+                          }
+                        }
+                        setStaffsActive(newStaffs);
+                        onChange(newStaffs);
+                      }}
+                    >
+                      {staff?.map((s) => (
+                        <ToggleGroupItem
+                          key={s.id}
+                          size="lg"
+                          value={s.name}
+                          aria-label={s.name}
+                          className={`${
+                            staffsActive?.includes(s.id)
+                              ? "bg-amber-400 text-amber-900 hover:bg-amber-400 hover:text-amber-900"
+                              : ""
+                          }`}
+                        >
+                          <span>{s.name}</span>
+                        </ToggleGroupItem>
+                      ))}
+                    </ToggleGroup>
+                  )}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

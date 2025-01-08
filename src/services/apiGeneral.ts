@@ -2,7 +2,10 @@ import { supabase } from "./supabase";
 import { StaffType } from "./types";
 
 export async function getStaff(): Promise<StaffType[]> {
-  const { data, error } = await supabase.from("staff").select("*");
+  const { data, error } = await supabase
+    .from("staff")
+    .select("*")
+    .neq("id", -1);
 
   if (error) {
     console.error("Staff could not be loaded.");
