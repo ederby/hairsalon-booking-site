@@ -1,15 +1,15 @@
 import { useToast } from "@/hooks/use-toast";
-import { toggleService } from "@/services/apiServices";
+import { toggleExtraService } from "@/services/apiServices";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export function useToggleService() {
+export function useToggleExtraService() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { mutate: onToggleService } = useMutation({
-    mutationFn: toggleService,
+  const { mutate: onToggleExtraService } = useMutation({
+    mutationFn: toggleExtraService,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["services"] });
+      queryClient.invalidateQueries({ queryKey: ["extraservices"] });
     },
     onError: () => {
       toast({
@@ -20,5 +20,5 @@ export function useToggleService() {
     },
   });
 
-  return { onToggleService };
+  return { onToggleExtraService };
 }

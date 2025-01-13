@@ -1,4 +1,4 @@
-import { getExtraServices } from "@/services/apiServices";
+import { getExtraServices } from "@/services/apiGeneral";
 import { ExtraservicesType } from "@/services/types";
 import { useQuery } from "@tanstack/react-query";
 

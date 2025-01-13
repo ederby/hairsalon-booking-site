@@ -12,9 +12,11 @@ import ResponsiveDialog from "@/components/layout/ResponsiveDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ExtraServiceEditForm from "./ExtraServiceEditForm";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 export default function ExtraServiceTable() {
   const { extraServices } = useExtraServices();
+  const [animationParent] = useAutoAnimate();
 
   return (
     <div>
@@ -43,7 +45,7 @@ export default function ExtraServiceTable() {
             <TableHead className="text-right">Varaktighet</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody ref={animationParent}>
           {extraServices?.map((extraService) => (
             <ExtraServiceTableItem
               key={extraService.id}

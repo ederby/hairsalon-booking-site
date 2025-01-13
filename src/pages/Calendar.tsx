@@ -1,3 +1,10 @@
+import Wrapper from "@/components/layout/Wrapper";
+import Scheduler from "@/features/calendar/Scheduler";
+
 export default function Calendar() {
-  return <div className="text-3xl">Calendar</div>;
+  return (
+    <Wrapper>
+      <Scheduler />
+    </Wrapper>
+  );
 }

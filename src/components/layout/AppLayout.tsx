@@ -6,7 +6,7 @@ import { Toaster } from "../ui/toaster";
 
 export default function AppLayout() {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <AppSidebar />
       <div className="flex flex-col w-full">
         <Header />

@@ -34,20 +34,6 @@ async function uploadImageToBucket(
   return imagePath;
 }
 
-export async function getCategories(): Promise<CategoryListType[]> {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("*")
-    .order("order", { ascending: true });
-
-  if (error) {
-    console.error("Services could not be loaded.");
-    throw new Error("Services could not be loaded.");
-  }
-
-  return data;
-}
-
 export async function editCategories(
   category: CategoryEditType
 ): Promise<void> {
@@ -273,26 +259,12 @@ export async function editStaffCategories({
   if (staff.length >= 2) await setStaffCategory(-1, isEditCategory);
 }
 
-export async function getExtraServices(): Promise<ExtraservicesType[]> {
-  const { data, error } = await supabase
-    .from("extraservices")
-    .select("*")
-    .order("id", { ascending: true });
-
-  if (error) {
-    console.error("Tilläggstjänster kunde inte hämtas.");
-    throw new Error("Tilläggstjänster kunde inte hämtas.");
-  }
-
-  return data;
-}
-
 export async function createExtraService(
-  extraService: Omit<ExtraservicesType, "id">
+  extraService: Omit<ExtraservicesType, "id" | "isActive">
 ) {
   const { data, error } = await supabase
     .from("extraservices")
-    .insert([{ ...extraService }])
+    .insert([{ ...extraService, isActive: true }])
     .select();
 
   if (error) {
@@ -313,7 +285,7 @@ export async function deleteExtraService(id: number): Promise<void> {
 }
 
 export async function editExtraService(
-  extraService: ExtraservicesType
+  extraService: Omit<ExtraservicesType, "isActive">
 ): Promise<void> {
   const { title, price, duration, id, categoryIDs } = extraService;
   const { error } = await supabase
@@ -324,6 +296,24 @@ export async function editExtraService(
       duration,
       categoryIDs,
     })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Tilläggstjänster kunde inte uppdateras.");
+    throw new Error("Tilläggstjänster kunde inte uppdateras.");
+  }
+}
+
+export async function toggleExtraService({
+  id,
+  toggle,
+}: {
+  id: number;
+  toggle: boolean;
+}): Promise<void> {
+  const { error } = await supabase
+    .from("extraservices")
+    .update({ isActive: toggle })
     .eq("id", id);
 
   if (error) {

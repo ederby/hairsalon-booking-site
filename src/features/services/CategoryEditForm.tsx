@@ -56,8 +56,8 @@ export default function CategoryEditForm({
 }: CategoryEditFormProps): JSX.Element {
   const { id: isEditCategory, ...editValues } = categoryToEdit;
   const isEditSession = Boolean(isEditCategory);
-  const { staff } = useStaff();
-  const { categories } = useCategories();
+  const { staff, fetchingStaff } = useStaff();
+  const { categories, isLoadingCategories } = useCategories();
   const { staffByCategoryID, fetchingStaffByCategoryID } = useStaffByCategoryID(
     isEditCategory ?? -1
   );
@@ -104,12 +104,11 @@ export default function CategoryEditForm({
 
   function onSubmit(data: FormSchema) {
     const { description, image, title, staff } = data;
-    console.log(staff);
+
     if (
       title === editValues.title &&
       description === editValues.description &&
       !image &&
-      // staff.every((element) => staffByCategoryID?.includes(element))
       staff.toString() === staffByCategoryID?.toString()
     )
       return;
@@ -133,7 +132,8 @@ export default function CategoryEditForm({
     }
   }
 
-  if (fetchingStaffByCategoryID) return <Spinner />;
+  if (fetchingStaffByCategoryID || fetchingStaff || isLoadingCategories)
+    return <Spinner />;
 
   return (
     <FormProvider {...form}>
@@ -189,51 +189,6 @@ export default function CategoryEditForm({
           )}
         />
 
-        {/* <FormField
-          control={form.control}
-          name="staff"
-          render={() => (
-            <FormItem>
-              <FormLabel>Personal</FormLabel>
-              <FormControl>
-                <div className="space-y-2">
-                  {staff
-                    ?.filter((s) => s.id !== -1)
-                    .map((staffMember) => (
-                      <label
-                        key={staffMember.id}
-                        className="flex items-center space-x-2"
-                      >
-                        <Controller
-                          name="staff"
-                          control={form.control}
-                          render={({ field: { value, onChange } }) => (
-                            <Checkbox
-                              value={staffMember.id}
-                              defaultChecked={staffByCategoryID?.includes(
-                                staffMember.id
-                              )}
-                              checked={value?.includes(staffMember.id)}
-                              onCheckedChange={(checked) =>
-                                onChange(
-                                  checked
-                                    ? [...(value || []), staffMember.id]
-                                    : value?.filter((v) => v !== staffMember.id)
-                                )
-                              }
-                            />
-                          )}
-                        />
-                        <span>{staffMember.name}</span>
-                      </label>
-                    ))}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
-
         <FormField
           name="staff"
           control={form.control}
@@ -244,50 +199,52 @@ export default function CategoryEditForm({
                 <Controller
                   name="staff"
                   control={form.control}
-                  render={({ field: { value = [], onChange } }) => (
-                    <ToggleGroup
-                      type="multiple"
-                      value={value.map(String)}
-                      onValueChange={(newValue) => {
-                        const findStaff = newValue
-                          .map(
-                            (name) => staff?.find((s) => s.name === name)?.id
-                          )
-                          .filter((id) => id !== undefined) as number[];
+                  render={({ field: { value = [], onChange } }) => {
+                    const staffValues = value as number[];
+                    return (
+                      <ToggleGroup
+                        type="multiple"
+                        value={value.map(String)}
+                        onValueChange={(newValue) => {
+                          const findStaff = newValue
+                            .map(
+                              (name) => staff?.find((s) => s.name === name)?.id
+                            )
+                            .filter((id) => id !== undefined) as number[];
 
-                        console.log(findStaff);
-                        console.log(value);
-
-                        let newStaffs: number[] = [];
-                        if (findStaff.length > 0) {
-                          const staffId = findStaff[0];
-                          if (value.includes(staffId)) {
-                            newStaffs = value.filter((v) => v !== staffId);
-                          } else {
-                            newStaffs = [...value, staffId];
+                          let newStaffs: number[] = [];
+                          if (findStaff.length > 0) {
+                            const staffId: number = findStaff[0];
+                            if (staffValues.includes(staffId)) {
+                              newStaffs = staffValues.filter(
+                                (v) => v !== staffId
+                              );
+                            } else {
+                              newStaffs = [...staffValues, staffId];
+                            }
                           }
-                        }
-                        setStaffsActive(newStaffs);
-                        onChange(newStaffs);
-                      }}
-                    >
-                      {staff?.map((s) => (
-                        <ToggleGroupItem
-                          key={s.id}
-                          size="lg"
-                          value={s.name}
-                          aria-label={s.name}
-                          className={`${
-                            staffsActive?.includes(s.id)
-                              ? "bg-amber-400 text-amber-900 hover:bg-amber-400 hover:text-amber-900"
-                              : ""
-                          }`}
-                        >
-                          <span>{s.name}</span>
-                        </ToggleGroupItem>
-                      ))}
-                    </ToggleGroup>
-                  )}
+                          setStaffsActive(newStaffs);
+                          onChange(newStaffs);
+                        }}
+                      >
+                        {staff?.map((s) => (
+                          <ToggleGroupItem
+                            key={s.id}
+                            size="lg"
+                            value={s.name}
+                            aria-label={s.name}
+                            className={`${
+                              staffsActive?.includes(s.id)
+                                ? "bg-amber-400 text-amber-900 hover:bg-amber-400 hover:text-amber-900"
+                                : ""
+                            }`}
+                          >
+                            <span>{s.name}</span>
+                          </ToggleGroupItem>
+                        ))}
+                      </ToggleGroup>
+                    );
+                  }}
                 />
               </FormControl>
               <FormMessage />

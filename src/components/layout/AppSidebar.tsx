@@ -17,7 +17,7 @@ import {
 } from "../ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { getCategories } from "@/services/apiServices";
+import { getCategories } from "@/services/apiGeneral";
 
 type LinksType = {
   title: string;

@@ -66,7 +66,6 @@ export default function ServiceListItem({
             <Switch
               checked={service.isActive}
               onCheckedChange={handleChecked}
-              className="data-[state=checked]:bg-teal-600"
             />
             <span className={`${!service.isActive ? "text-zinc-600" : ""}`}>
               {service.title}

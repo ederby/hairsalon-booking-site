@@ -51,5 +51,53 @@ export type ExtraservicesType = {
   title: string;
   duration: number;
   price: number;
+  isActive: boolean;
   categoryIDs: number[];
+};
+
+export type GuestInfoType = {
+  name: string;
+  email: string;
+  phone: string;
+  observations: string;
+};
+
+export type BookingType = {
+  id: number;
+  created_at: Date;
+  category: CategoryListType;
+  service: ServicesType;
+  extraServices: ExtraservicesType[] | [];
+  staff_id: number;
+  selectedDate: Date;
+  selectedTime: string;
+  guestInfo: GuestInfoType;
+};
+
+export type BookingInfoType = {
+  price: number;
+  id: number;
+  serviceID: number;
+  createdAt: Date;
+  extraServices: ExtraservicesType[];
+};
+
+export interface EventTemplate {
+  EndTime: Date;
+  Guid: string;
+  isAllDay: boolean;
+  ResourceId: number;
+  StaffColor: string;
+  SecondStaffColor: string;
+  StartTime: Date;
+  Subject: string;
+  GuestInfo: GuestInfoType;
+  BookingInfo: BookingInfoType;
+}
+
+export type CalendarStaffMembers = {
+  text: string;
+  id: number;
+  color: string[] | undefined;
+  image: string;
 };

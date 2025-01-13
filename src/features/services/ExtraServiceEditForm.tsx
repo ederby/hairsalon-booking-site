@@ -31,6 +31,7 @@ type ExtraServiceEditFormProps = {
     title?: string;
     duration?: number;
     price?: number;
+    isActive?: boolean;
     categoryIDs?: number[];
   };
 };
@@ -59,9 +60,8 @@ export default function ExtraServiceEditForm({
   });
   const { isValid, isSubmitting } = form.formState;
 
-  function onSubmit(data: Omit<ExtraservicesType, "id">) {
+  function onSubmit(data: Omit<ExtraservicesType, "id" | "isActive">) {
     const { categoryIDs, duration, price, title } = data;
-    console.log(categoryIDs);
 
     if (
       duration === editValues.duration &&
@@ -161,7 +161,6 @@ export default function ExtraServiceEditForm({
                             .filter((id) => id !== undefined)
                             .shift() ?? -1;
 
-                        console.log(newValue);
                         let newCategories: number[] = [];
                         if (value.includes(findCategories ?? -1))
                           newCategories = value.filter(

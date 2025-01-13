@@ -6,9 +6,9 @@ import ExtraServiceTable from "@/features/services/ExtraServiceTable";
 import { useCategories } from "@/features/services/useCategories";
 
 export default function Services() {
-  const { categories, isLoading } = useCategories();
+  const { categories, isLoadingCategories } = useCategories();
 
-  if (isLoading) return <Spinner />;
+  if (isLoadingCategories) return <Spinner />;
 
   return (
     <Wrapper>
