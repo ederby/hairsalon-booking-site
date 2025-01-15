@@ -55,7 +55,7 @@ interface CalendarEvent {
   StaffColor?: string;
 }
 
-const queryClient = new QueryClient();
+export const queryClient2 = new QueryClient();
 
 export default function Scheduler() {
   const { staff, fetchingStaff } = useStaff();
@@ -76,27 +76,17 @@ export default function Scheduler() {
 
   const transformedBookings = activeBookings?.map((booking, index) => {
     const startDateTime = new Date(
-      `${booking.selectedDate}T${booking.selectedTime}:00.000Z`
+      `${booking.selectedDate}T${booking.startTime}:00`
     );
-
-    const extraServicesTotalDuration =
-      booking.extraServices?.reduce(
-        (acc, service) => acc + service.duration,
-        0
-      ) || 0;
 
     const endDateTime = new Date(startDateTime);
-    endDateTime.setMinutes(
-      endDateTime.getMinutes() +
-        booking.service.duration +
-        extraServicesTotalDuration
-    );
+    endDateTime.setMinutes(endDateTime.getMinutes() + booking.duration);
 
     const staffMember = staffMembers?.find((s) => s.id === booking.staff_id);
 
     return {
       Id: index + 1,
-      Subject: booking.service.title,
+      Subject: booking.service?.title,
       StartTime: startDateTime.toISOString(),
       EndTime: endDateTime.toISOString(),
       IsAllDay: false,
@@ -105,11 +95,14 @@ export default function Scheduler() {
       SecondStaffColor: staffMember?.color?.at(1),
       GuestInfo: booking.guestInfo,
       BookingInfo: {
-        price: booking.service.price,
+        price: booking.service?.price,
         id: booking.id,
-        serviceID: booking.service.id,
+        serviceID: booking.service?.id,
         createdAt: booking.created_at,
         extraServices: booking.extraServices,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        duration: booking.duration,
       },
     };
   });
@@ -175,16 +168,18 @@ export default function Scheduler() {
     }
   };
 
+  const scheduleRef = useRef<ScheduleComponent>(null);
   const onPopupOpen = (args: PopupOpenEventArgs) => {
     if (args.type === "QuickInfo" && args.element) {
       const root = createRoot(args.element);
       args.cancel = false;
       root.render(
-        <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={queryClient2}>
           <EventPopup
             data={args.data as EventTemplate}
             staff={staffMembers as CalendarStaffMembers[]}
             onDeleteBooking={onDeleteBooking}
+            closePopup={() => scheduleRef.current?.closeQuickInfoPopup()}
           />
         </QueryClientProvider>
       );
@@ -210,6 +205,7 @@ export default function Scheduler() {
         ))}
       </div>
       <ScheduleComponent
+        ref={scheduleRef}
         locale="sv"
         currentView="Week"
         selectedDate={new Date()}

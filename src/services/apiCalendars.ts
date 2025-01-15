@@ -38,3 +38,21 @@ export async function getServices(): Promise<ServicesType[]> {
 
   return data;
 }
+type editBookingType = {
+  booking: Omit<BookingType, "id" | "created_at">;
+  id: number;
+};
+export async function editBooking({
+  booking,
+  id,
+}: editBookingType): Promise<void> {
+  const { error } = await supabase
+    .from("bookings")
+    .update({ ...booking })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Bokningen kunde inte uppdateras.");
+    throw new Error("Bokningen kunde inte uppdateras.");
+  }
+}

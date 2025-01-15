@@ -9,7 +9,7 @@ import Services from "./pages/Services";
 import Settings from "./pages/Settings";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
-const queryClient = new QueryClient({
+export const queryClient1 = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 1000,
@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient1}>
       <ReactQueryDevtools initialIsOpen={false} />
       <BrowserRouter>
         <Routes>

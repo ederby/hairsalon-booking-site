@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { CalendarStaffMembers, EventTemplate } from "@/services/types";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { CircleX, Pencil } from "lucide-react";
+import { CircleX, Pencil, X } from "lucide-react";
 import { useState } from "react";
 import CalendarEditForm from "../CalendarEditForm";
 
@@ -14,12 +14,14 @@ type EventPopupType = {
   data: EventTemplate;
   staff: CalendarStaffMembers[];
   onDeleteBooking: (id: number) => void;
+  closePopup: () => void;
 };
 
 export function EventPopup({
   data,
   staff,
   onDeleteBooking,
+  closePopup,
 }: EventPopupType): JSX.Element {
   const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
   const [openResponsiveDialog, setOpenResponsiveDialog] =
@@ -51,17 +53,22 @@ export function EventPopup({
   const formattedBookingDate = format(new Date(StartTime), "d'e' MMMM", {
     locale: sv,
   });
-  const formattedTime = `${format(new Date(StartTime), "HH:mm")} - ${format(
-    new Date(EndTime),
-    "HH:mm"
-  )}`;
 
   return (
     <div className="overflow-hidden rounded mb-1">
-      <div className="py-2 px-4" style={{ backgroundColor: StaffColor }}>
+      <div
+        className="py-2 px-4 flex justify-between items-center"
+        style={{ backgroundColor: StaffColor }}
+      >
         <span className="font-semibold" style={{ color: SecondStaffColor }}>
           Bokad {formattedCreatedDate}
         </span>
+        <X
+          size={16}
+          color={SecondStaffColor}
+          className="cursor-pointer"
+          onClick={closePopup}
+        />
       </div>
 
       <div className="text-zinc-700 relative px-4 py-2">
@@ -105,7 +112,16 @@ export function EventPopup({
             open={openResponsiveDialog}
             setOpen={setOpenResponsiveDialog}
           >
-            <CalendarEditForm booking={{ ...BookingInfo, Subject }} />
+            <CalendarEditForm
+              booking={{
+                ...BookingInfo,
+                Subject,
+                StartTime,
+                EndTime,
+                GuestInfo,
+              }}
+              currentStaffMember={currentStaffMember}
+            />
           </ResponsiveDialog>
         </div>
 
@@ -133,7 +149,9 @@ export function EventPopup({
 
           <div className="w-full flex justify-between items-center">
             <span className="text-zinc-400">Tid</span>
-            <span>{formattedTime}</span>
+            <span>
+              {BookingInfo.startTime} - {BookingInfo.endTime}
+            </span>
           </div>
 
           <div className="w-full flex justify-between items-center">

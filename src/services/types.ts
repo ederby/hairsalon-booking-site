@@ -59,18 +59,20 @@ export type GuestInfoType = {
   name: string;
   email: string;
   phone: string;
-  observations: string;
+  observations?: string;
 };
 
 export type BookingType = {
   id: number;
   created_at: Date;
-  category: CategoryListType;
-  service: ServicesType;
+  category?: CategoryListType;
+  service?: ServicesType;
   extraServices: ExtraservicesType[] | [];
   staff_id: number;
   selectedDate: Date;
-  selectedTime: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
   guestInfo: GuestInfoType;
 };
 
@@ -80,6 +82,9 @@ export type BookingInfoType = {
   serviceID: number;
   createdAt: Date;
   extraServices: ExtraservicesType[];
+  startTime: string;
+  endTime: string;
+  duration: number;
 };
 
 export interface EventTemplate {
