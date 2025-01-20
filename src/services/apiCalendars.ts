@@ -38,14 +38,15 @@ export async function getServices(): Promise<ServicesType[]> {
 
   return data;
 }
-type editBookingType = {
+
+type EditNewBookingType = {
   booking: Omit<BookingType, "id" | "created_at">;
   id: number;
 };
 export async function editBooking({
   booking,
   id,
-}: editBookingType): Promise<void> {
+}: EditNewBookingType): Promise<void> {
   const { error } = await supabase
     .from("bookings")
     .update({ ...booking })
@@ -54,5 +55,16 @@ export async function editBooking({
   if (error) {
     console.error("Bokningen kunde inte uppdateras.");
     throw new Error("Bokningen kunde inte uppdateras.");
+  }
+}
+
+export async function createBooking({
+  booking,
+}: Omit<EditNewBookingType, "id">): Promise<void> {
+  const { error } = await supabase.from("bookings").insert([booking]);
+
+  if (error) {
+    console.error("Bokningen kunde inte skapas.");
+    throw new Error("Bokningen kunde inte skapas.");
   }
 }

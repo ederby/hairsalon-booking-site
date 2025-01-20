@@ -23,7 +23,7 @@ export default function DropdownMenuCustom({
           <EllipsisVertical />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-20" side="top" align="start">
+      <DropdownMenuContent className="w-20 z-[5000]" side="top" align="start">
         <DropdownMenuGroup>{children}</DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -51,15 +51,33 @@ import { useCategories } from "../services/useCategories";
 import { useExtraServices } from "../services/useExtraServices";
 import { useEditBooking } from "./useEditBooking";
 import { useServices } from "./useServices";
+import { format } from "date-fns";
+import { useCreateBooking } from "./useCreateBooking";
 
 type CalendarEditFormProps = {
-  booking: BookingInfoType & {
+  booking?: BookingInfoType & {
     Subject: string;
     StartTime: Date;
     EndTime: Date;
     GuestInfo: GuestInfoType;
   };
   currentStaffMember: CalendarStaffMembers | undefined;
+  setOpenDialog: (value: boolean) => void;
+  isNewBookingMode: boolean;
+  startTime: Date;
+  endTime: Date;
+};
+type OnSubmitType = {
+  date: Date;
+  email: string;
+  endTime: string;
+  extraservices?: number[] | undefined;
+  name: string;
+  phone: string;
+  observations?: string;
+  service: string;
+  staff: string;
+  startTime: string;
 };
 
 const formSchema = z.object({
@@ -80,6 +98,10 @@ const formSchema = z.object({
 export default function CalendarEditForm({
   booking,
   currentStaffMember,
+  setOpenDialog,
+  isNewBookingMode,
+  startTime,
+  endTime,
 }: CalendarEditFormProps): JSX.Element {
   const { services, isLoadingServices } = useServices();
   const { categories, isLoadingCategories } = useCategories();
@@ -88,7 +110,7 @@ export default function CalendarEditForm({
   const { onEditBooking, isEditingBooking } = useEditBooking();
 
   const [selectedExtraServices, setSelectedExtraServices] = useState<number[]>(
-    booking.extraServices.map((extraService) => extraService.id)
+    booking?.extraServices.map((extraService) => extraService.id) || []
   );
   const [selectedStaff, setSelectedStaff] = useState<number | null>(
     currentStaffMember?.id ?? null
@@ -101,19 +123,24 @@ export default function CalendarEditForm({
   const [isBeforeOpeningTime, setIsBeforeOpeningTime] =
     useState<boolean>(false);
   const [isAfterOpeningTime, setIsAfterOpeningTime] = useState<boolean>(false);
+  const { onCreateBooking } = useCreateBooking();
 
   const initialValues = {
-    service: booking.serviceID?.toString() || "",
+    service: booking?.serviceID?.toString() || "",
     extraservices:
-      booking.extraServices.map((extraService) => extraService.id) || "",
+      booking?.extraServices.map((extraService) => extraService.id) || [],
     staff: currentStaffMember?.id.toString() || "",
-    date: booking.StartTime || new Date(),
-    startTime: booking.startTime || "",
-    endTime: booking.endTime || "",
-    name: booking.GuestInfo.name || "",
-    email: booking.GuestInfo.email || "",
-    phone: booking.GuestInfo.phone || "",
-    observations: booking.GuestInfo.observations || "",
+    date: new Date(startTime),
+    startTime: isNewBookingMode
+      ? format(new Date(startTime), "HH:mm")
+      : booking?.startTime || format(new Date(), "HH:mm") || "",
+    endTime: isNewBookingMode
+      ? format(new Date(endTime), "HH:mm")
+      : booking?.startTime || format(new Date(), "HH:mm") || "",
+    name: booking?.GuestInfo.name || "",
+    email: booking?.GuestInfo.email || "",
+    phone: booking?.GuestInfo.phone || "",
+    observations: booking?.GuestInfo.observations || "",
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -126,18 +153,6 @@ export default function CalendarEditForm({
     staff?.find((staffMember) => staffMember.id === selectedStaff)?.schedule ||
     {};
 
-  type OnSubmitType = {
-    date: Date;
-    email: string;
-    endTime: string;
-    extraservices?: number[] | undefined;
-    name: string;
-    phone: string;
-    observations?: string;
-    service: string;
-    staff: string;
-    startTime: string;
-  };
   function onSubmit(data: OnSubmitType) {
     const newService = services?.find(
       (service) => service.id === Number(data.service)
@@ -157,7 +172,7 @@ export default function CalendarEditForm({
       phone: data.phone,
       observations: data.observations,
     };
-    const editedBooking: Omit<BookingType, "id" | "created_at"> = {
+    const currentBooking: Omit<BookingType, "id" | "created_at"> = {
       category: newCategory,
       service: newService,
       extraServices: newExtraServices || [],
@@ -169,7 +184,9 @@ export default function CalendarEditForm({
       guestInfo: newGuestInfo,
     };
 
-    onEditBooking({ booking: editedBooking, id: booking.id });
+    if (isNewBookingMode) onCreateBooking({ booking: currentBooking });
+    if (!isNewBookingMode && booking)
+      onEditBooking({ booking: currentBooking, id: booking.id });
   }
 
   function handleExtraServiceChange(value: string) {
@@ -210,6 +227,8 @@ export default function CalendarEditForm({
     }
   }, [serviceWatch, form, startTimeWatch, services, totalDuration]);
 
+  const { isValid } = form.formState;
+
   if (
     isLoadingServices ||
     isLoadingCategories ||
@@ -225,7 +244,10 @@ export default function CalendarEditForm({
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-5 min-w-full"
+      >
         <FormField
           control={form.control}
           name="service"
@@ -341,7 +363,7 @@ export default function CalendarEditForm({
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj en tjänst" />
+                    <SelectValue placeholder="Välj en person" />
                   </SelectTrigger>
                   <SelectContent>
                     {staff?.map((staffMember) => (
@@ -430,7 +452,7 @@ export default function CalendarEditForm({
                       <div className="flex">
                         <Button
                           type="button"
-                          className="rounded-r-none border-r-0"
+                          className="rounded-r-none border-r-0 px-2"
                           variant="outline"
                           onClick={() => {
                             field.onChange(incrementTime(field.value, -15));
@@ -469,7 +491,7 @@ export default function CalendarEditForm({
                         />
                         <Button
                           type="button"
-                          className="rounded-l-none border-l-0"
+                          className="rounded-l-none border-l-0 px-2"
                           variant="outline"
                           onClick={() => {
                             field.onChange(incrementTime(field.value, 15));
@@ -505,7 +527,7 @@ export default function CalendarEditForm({
                       <div className="flex items-center">
                         <Button
                           type="button"
-                          className="rounded-r-none border-r-0"
+                          className="rounded-r-none border-r-0 px-2"
                           variant="outline"
                           onClick={() => {
                             field.onChange(incrementTime(field.value, -15));
@@ -551,7 +573,7 @@ export default function CalendarEditForm({
                         />
                         <Button
                           type="button"
-                          className="rounded-l-none border-l-0"
+                          className="rounded-l-none border-l-0 px-2"
                           variant="outline"
                           onClick={() => {
                             field.onChange(incrementTime(field.value, 15));
@@ -648,11 +670,25 @@ export default function CalendarEditForm({
             )}
           />
         </div>
-        <div className="w-full flex justify-end">
+        <div className="w-full flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpenDialog(false)}
+          >
+            Stäng
+          </Button>
           <DialogClose asChild>
-            <Button type="submit" disabled={!form.formState.isDirty}>{`${
+            <Button
+              type="submit"
+              disabled={!form.formState.isDirty || !isValid}
+            >{`${
               form.formState.isSubmitting || isEditingBooking
-                ? "Uppdaterar bokning..."
+                ? isNewBookingMode
+                  ? "Skapar bokning"
+                  : "Uppdaterar bokning..."
+                : isNewBookingMode
+                ? "Skapa bokning"
                 : "Uppdatera bokning"
             }`}</Button>
           </DialogClose>

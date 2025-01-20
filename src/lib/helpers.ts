@@ -1,3 +1,5 @@
+import { queryClient1 } from "@/App";
+import { queryClient2 } from "@/features/calendar/Scheduler";
 import { ExtraservicesType } from "@/services/types";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -51,4 +53,11 @@ export function isAfterTime(time: string, compareTime: string) {
   } else {
     return false;
   }
+}
+
+export function invalidateAllQueries(queryKey: string) {
+  const queryClients = [queryClient1, queryClient2];
+  queryClients.forEach((queryClient) => {
+    queryClient.invalidateQueries({ queryKey: [queryKey] });
+  });
 }

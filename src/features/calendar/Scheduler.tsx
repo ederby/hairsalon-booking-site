@@ -26,7 +26,7 @@ import * as svCalendars from "@syncfusion/ej2-cldr-data/main/sv/ca-gregorian.jso
 import * as svNumbers from "@syncfusion/ej2-cldr-data/main/sv/numbers.json";
 import * as svTimeZoneNames from "@syncfusion/ej2-cldr-data/main/sv/timeZoneNames.json";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { EventPopup } from "./ui/EventPopup";
@@ -63,6 +63,7 @@ export default function Scheduler() {
   const isFirstRender = useRef(true);
   const { onDeleteBooking } = useDeleteBooking();
 
+  // Transform staff to fit the scheduler
   const staffMembers: CalendarStaffMembers[] | undefined = staff?.map(
     (person, i) => {
       return {
@@ -74,8 +75,9 @@ export default function Scheduler() {
     }
   );
 
+  // Transform bookings to fit the scheduler
   const transformedBookings = activeBookings?.map((booking, index) => {
-    const startDateTime = new Date(
+    const startDateTime = parseISO(
       `${booking.selectedDate}T${booking.startTime}:00`
     );
 
@@ -107,6 +109,7 @@ export default function Scheduler() {
     };
   });
 
+  // Filter bookings based on selected staff
   const [selectedStaff, setSelectedStaff] = useState<number[]>(
     staffMembers?.map((staff) => staff.id) || []
   );
@@ -125,9 +128,10 @@ export default function Scheduler() {
     selectedStaff?.includes(appointment.ResourceId)
   );
 
+  // Set default selected staff
   useEffect(() => {
     if (isFirstRender.current && staffMembers && staffMembers.length > 0) {
-      setSelectedStaff([staffMembers[0].id]);
+      setSelectedStaff([staffMembers[2].id]);
       isFirstRender.current = false;
     }
   }, [staffMembers]);
@@ -168,11 +172,15 @@ export default function Scheduler() {
     }
   };
 
+  // Open popup when clicking on an event
   const scheduleRef = useRef<ScheduleComponent>(null);
   const onPopupOpen = (args: PopupOpenEventArgs) => {
-    if (args.type === "QuickInfo" && args.element) {
-      const root = createRoot(args.element);
+    if (
+      args.type === "QuickInfo" ||
+      (args.type === "ViewEventInfo" && args.element)
+    ) {
       args.cancel = false;
+      const root = createRoot(args.element);
       root.render(
         <QueryClientProvider client={queryClient2}>
           <EventPopup

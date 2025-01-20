@@ -97,7 +97,7 @@ export interface EventTemplate {
   StartTime: Date;
   Subject: string;
   GuestInfo: GuestInfoType;
-  BookingInfo: BookingInfoType;
+  BookingInfo?: BookingInfoType;
 }
 
 export type CalendarStaffMembers = {
