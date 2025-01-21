@@ -12,10 +12,10 @@ import {
   Month,
   PopupOpenEventArgs,
   ScheduleComponent,
-  Week,
+  ViewDirective,
+  ViewsDirective,
   WorkWeek,
 } from "@syncfusion/ej2-react-schedule";
-// import * as numberingSystems from "@syncfusion/ej2-cldr-data/numberingSystems.json";
 import Spinner from "@/components/layout/Spinner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useActiveBookings } from "@/features/calendar/useActiveBookings";
@@ -31,6 +31,7 @@ import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { EventPopup } from "./ui/EventPopup";
 import { useDeleteBooking } from "./useDeleteBooking";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 loadCldr(svNumbers, svCalendars, svTimeZoneNames);
 setCulture("sv");
@@ -39,10 +40,10 @@ L10n.load(sv);
 const syncfusionKey = import.meta.env.VITE_SYNCFUSION_KEY;
 registerLicense(syncfusionKey);
 const staffColours = [
-  ["#67e8f9", "#0e7490"],
-  ["#fcd34d", "#b45309"],
-  ["#c4b5fd", "#6d28d9"],
-  ["#fda4af", "#be123c"],
+  ["#D7ECFF", "#1F5ABB"],
+  ["#FDF0C2", "#DEAC29"],
+  ["#D7FFE0", "#42AB57"],
+  ["#FCE7E8", "#A83735"],
 ];
 
 interface CalendarEvent {
@@ -110,17 +111,14 @@ export default function Scheduler() {
   });
 
   // Filter bookings based on selected staff
-  const [selectedStaff, setSelectedStaff] = useState<number[]>(
-    staffMembers?.map((staff) => staff.id) || []
-  );
+  const [selectedStaff, setSelectedStaff] = useState<number[]>([]);
 
   const handleCheckboxChange = (id: number) => {
+    console.log(id);
     setSelectedStaff((prevSelectedStaff) =>
-      Array.isArray(prevSelectedStaff)
-        ? prevSelectedStaff.includes(id)
-          ? prevSelectedStaff.filter((staffId) => staffId !== id)
-          : [...prevSelectedStaff, id]
-        : [id]
+      prevSelectedStaff.includes(id)
+        ? prevSelectedStaff.filter((staffId) => staffId !== id)
+        : [...prevSelectedStaff, id]
     );
   };
 
@@ -198,32 +196,43 @@ export default function Scheduler() {
 
   return (
     <>
-      <div>
-        {staffMembers?.map((staff) => (
-          <div key={staff.id} className="flex items-center gap-2">
-            <Checkbox
-              id={`staff-${staff.id}`}
-              checked={selectedStaff?.includes(staff.id)}
-              onCheckedChange={() => handleCheckboxChange(staff.id)}
-              className="border-0"
-              style={{ backgroundColor: staff.color?.at(0) }}
-            />
-            <label htmlFor={`staff-${staff.id}`}>{staff.text}</label>
-          </div>
+      <div className="inline-flex h-10 items-center space-x-1 rounded-md border bg-background p-1 mb-2">
+        {staffMembers?.map((s) => (
+          <button
+            key={s.id}
+            className="rounded-sm px-3 py-1.5 text-sm font-medium text-zinc-700"
+            style={{
+              backgroundColor: selectedStaff.includes(s.id)
+                ? s.color?.at(0)
+                : "",
+              color: selectedStaff.includes(s.id) ? s.color?.at(1) : "",
+            }}
+            onClick={() => handleCheckboxChange(s.id)}
+          >
+            {s.text}
+          </button>
         ))}
       </div>
+
       <ScheduleComponent
         ref={scheduleRef}
         locale="sv"
-        currentView="Week"
         selectedDate={new Date()}
         startHour="08:00"
         endHour="19:00"
         eventSettings={eventSettings}
         eventRendered={onEventRendered}
         popupOpen={onPopupOpen}
+        workDays={[1, 2, 3, 4, 5, 6]}
+        currentView="WorkWeek"
       >
-        <Inject services={[Day, Week, WorkWeek, Month, Agenda]} />
+        <ViewsDirective>
+          <ViewDirective option="Day" />
+          <ViewDirective option="WorkWeek" />
+          <ViewDirective option="Month" />
+          <ViewDirective option="Agenda" />
+        </ViewsDirective>
+        <Inject services={[Day, WorkWeek, Month, Agenda]} />
       </ScheduleComponent>
     </>
   );

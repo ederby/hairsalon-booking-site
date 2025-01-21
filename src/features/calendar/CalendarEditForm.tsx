@@ -109,6 +109,8 @@ export default function CalendarEditForm({
   const { extraServices, isLoadingExtraServices } = useExtraServices();
   const { onEditBooking, isEditingBooking } = useEditBooking();
 
+  console.log(extraServices);
+
   const [selectedExtraServices, setSelectedExtraServices] = useState<number[]>(
     booking?.extraServices.map((extraService) => extraService.id) || []
   );
@@ -309,19 +311,21 @@ export default function CalendarEditForm({
                     </span>
                   </SelectTrigger>
                   <SelectContent>
-                    {extraServices?.map((extraService) => (
-                      <SelectItem
-                        key={extraService.id}
-                        value={extraService.id.toString()}
-                      >
-                        <span>{extraService.title}</span>
-                      </SelectItem>
-                    ))}
+                    {extraServices
+                      ?.filter((extraService) => extraService.isActive)
+                      .map((extraService) => (
+                        <SelectItem
+                          key={extraService.id}
+                          value={extraService.id.toString()}
+                        >
+                          <span>{extraService.title}</span>
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </FormControl>
               <FormMessage />
-              <ul className="flex text-[11px] gap-1">
+              <ul className="flex text-[11px] gap-1 flex-wrap">
                 {extraServices
                   ?.filter((service) =>
                     selectedExtraServices.includes(service.id)
