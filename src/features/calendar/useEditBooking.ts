@@ -1,14 +1,14 @@
 import { useToast } from "@/hooks/use-toast";
-import { invalidateAllQueries } from "@/lib/helpers";
 import { editBooking } from "@/services/apiCalendars";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useEditBooking() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { mutate: onEditBooking, isPending: isEditingBooking } = useMutation({
     mutationFn: editBooking,
     onSuccess: () => {
-      invalidateAllQueries("activebookings");
+      queryClient.invalidateQueries({ queryKey: ["activebookings"] });
 
       toast({
         title: "Hurra!",

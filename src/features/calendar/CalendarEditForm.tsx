@@ -36,37 +36,39 @@ import {
 } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
 import {
-  BookingInfoType,
   BookingType,
-  CalendarStaffMembers,
+  ExtraservicesType,
   GuestInfoType,
+  StaffType,
 } from "@/services/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sv } from "date-fns/locale";
 import { CalendarIcon, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useCategories } from "../services/useCategories";
 import { useExtraServices } from "../services/useExtraServices";
+import { useCreateBooking } from "./useCreateBooking";
 import { useEditBooking } from "./useEditBooking";
 import { useServices } from "./useServices";
-import { format } from "date-fns";
-import { useCreateBooking } from "./useCreateBooking";
+import { format, startOfDay } from "date-fns";
 
 type CalendarEditFormProps = {
-  booking?: BookingInfoType & {
-    Subject: string;
-    StartTime: Date;
-    EndTime: Date;
-    GuestInfo: GuestInfoType;
-  };
-  currentStaffMember: CalendarStaffMembers | undefined;
+  currentStaffMember: StaffType | undefined;
   setOpenDialog: (value: boolean) => void;
-  isNewBookingMode: boolean;
-  startTime: Date;
-  endTime: Date;
+  bookingInfo: {
+    id: number;
+    serviceID: number;
+    extraServices: ExtraservicesType[] | [];
+    time: { startTime: string; endTime: string };
+    subject: string;
+    resourceID: number;
+    guestInfo: GuestInfoType;
+    date: Date;
+  };
 };
+
 type OnSubmitType = {
   date: Date;
   email: string;
@@ -78,13 +80,14 @@ type OnSubmitType = {
   service: string;
   staff: string;
   startTime: string;
+  id?: number;
 };
 
 const formSchema = z.object({
   service: z.string().nonempty("Titel är obligatorisk"),
   extraservices: z.array(z.number()).optional(),
   staff: z.string().nonempty("Välj en person"),
-  date: z.date().refine((date) => date >= new Date(), {
+  date: z.date().refine((date) => date >= startOfDay(new Date()), {
     message: "Välj ett tillgängligt datum",
   }),
   startTime: z.string().nonempty("Välj en starttid"),
@@ -93,15 +96,13 @@ const formSchema = z.object({
   email: z.string().email().nonempty("Skriv en riktig emailadress"),
   phone: z.string().nonempty("Skriv ett telefonnummer"),
   observations: z.string().optional(),
+  id: z.number().optional(),
 });
 
 export default function CalendarEditForm({
-  booking,
   currentStaffMember,
   setOpenDialog,
-  isNewBookingMode,
-  startTime,
-  endTime,
+  bookingInfo,
 }: CalendarEditFormProps): JSX.Element {
   const { services, isLoadingServices } = useServices();
   const { categories, isLoadingCategories } = useCategories();
@@ -109,10 +110,8 @@ export default function CalendarEditForm({
   const { extraServices, isLoadingExtraServices } = useExtraServices();
   const { onEditBooking, isEditingBooking } = useEditBooking();
 
-  console.log(extraServices);
-
   const [selectedExtraServices, setSelectedExtraServices] = useState<number[]>(
-    booking?.extraServices.map((extraService) => extraService.id) || []
+    bookingInfo?.extraServices?.map((extraService) => extraService.id) || []
   );
   const [selectedStaff, setSelectedStaff] = useState<number | null>(
     currentStaffMember?.id ?? null
@@ -128,21 +127,19 @@ export default function CalendarEditForm({
   const { onCreateBooking } = useCreateBooking();
 
   const initialValues = {
-    service: booking?.serviceID?.toString() || "",
-    extraservices:
-      booking?.extraServices.map((extraService) => extraService.id) || [],
+    service: bookingInfo ? bookingInfo.serviceID.toString() : "1",
+    extraservices: bookingInfo
+      ? bookingInfo.extraServices.map((extraService) => extraService.id)
+      : [],
     staff: currentStaffMember?.id.toString() || "",
-    date: new Date(startTime),
-    startTime: isNewBookingMode
-      ? format(new Date(startTime), "HH:mm")
-      : booking?.startTime || format(new Date(), "HH:mm") || "",
-    endTime: isNewBookingMode
-      ? format(new Date(endTime), "HH:mm")
-      : booking?.startTime || format(new Date(), "HH:mm") || "",
-    name: booking?.GuestInfo.name || "",
-    email: booking?.GuestInfo.email || "",
-    phone: booking?.GuestInfo.phone || "",
-    observations: booking?.GuestInfo.observations || "",
+    date: bookingInfo ? new Date(bookingInfo.date) : new Date(),
+    startTime: bookingInfo.time.startTime,
+    endTime: bookingInfo.time.endTime,
+    name: bookingInfo ? bookingInfo.guestInfo.name : "",
+    email: bookingInfo ? bookingInfo.guestInfo.email : "",
+    phone: bookingInfo ? bookingInfo.guestInfo.phone : "",
+    observations: bookingInfo ? bookingInfo.guestInfo.observations || "" : "",
+    id: bookingInfo.id,
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -166,7 +163,7 @@ export default function CalendarEditForm({
       selectedExtraServices.includes(extraService.id)
     );
     const newStaff = +data.staff;
-    const newDate = data.date;
+    const newDate = format(data.date, "yyyy-MM-dd");
     const newDuration = (newService?.duration || 0) + extraServicesDuration;
     const newGuestInfo: GuestInfoType = {
       name: data.name,
@@ -186,9 +183,9 @@ export default function CalendarEditForm({
       guestInfo: newGuestInfo,
     };
 
-    if (isNewBookingMode) onCreateBooking({ booking: currentBooking });
-    if (!isNewBookingMode && booking)
-      onEditBooking({ booking: currentBooking, id: booking.id });
+    if (data.id === 0) onCreateBooking({ booking: currentBooking });
+    if (data.id !== 0)
+      onEditBooking({ booking: currentBooking, id: data.id ?? 0 });
   }
 
   function handleExtraServiceChange(value: string) {
@@ -673,6 +670,12 @@ export default function CalendarEditForm({
               </FormItem>
             )}
           />
+
+          <Controller
+            name="id"
+            control={form.control}
+            render={({ field }) => <input type="hidden" {...field} />}
+          />
         </div>
         <div className="w-full flex justify-end gap-2">
           <Button
@@ -688,12 +691,12 @@ export default function CalendarEditForm({
               disabled={!form.formState.isDirty || !isValid}
             >{`${
               form.formState.isSubmitting || isEditingBooking
-                ? isNewBookingMode
-                  ? "Skapar bokning"
-                  : "Uppdaterar bokning..."
-                : isNewBookingMode
-                ? "Skapa bokning"
-                : "Uppdatera bokning"
+                ? bookingInfo.id !== 0
+                  ? "Uppdaterar bokning..."
+                  : "Skapar bokning"
+                : bookingInfo.id !== 0
+                ? "Uppdatera bokning"
+                : "Skapa bokning"
             }`}</Button>
           </DialogClose>
         </div>

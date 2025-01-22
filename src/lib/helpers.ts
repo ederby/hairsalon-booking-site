@@ -1,5 +1,3 @@
-import { queryClient1 } from "@/App";
-import { queryClient2 } from "@/features/calendar/Scheduler";
 import { ExtraservicesType } from "@/services/types";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -25,6 +23,9 @@ export function incrementTime(time: string, minutes: number): string {
 }
 
 export const formatCustomDate = (date: Date) => {
+  if (!date || isNaN(date.getTime())) {
+    return "Invalid date";
+  }
   const day = format(date, "d", { locale: sv });
   const month = format(date, "MMMM", { locale: sv });
   const year = format(date, "yyyy", { locale: sv });
@@ -53,11 +54,4 @@ export function isAfterTime(time: string, compareTime: string) {
   } else {
     return false;
   }
-}
-
-export function invalidateAllQueries(queryKey: string) {
-  const queryClients = [queryClient1, queryClient2];
-  queryClients.forEach((queryClient) => {
-    queryClient.invalidateQueries({ queryKey: [queryKey] });
-  });
 }

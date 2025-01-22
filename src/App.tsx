@@ -9,7 +9,7 @@ import PageNotFound from "./pages/PageNotFound";
 import Services from "./pages/Services";
 import Settings from "./pages/Settings";
 
-export const queryClient1 = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 1000,
@@ -19,7 +19,7 @@ export const queryClient1 = new QueryClient({
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient1}>
+    <QueryClientProvider client={queryClient}>
       <ReactQueryDevtools initialIsOpen={false} />
       <BrowserRouter>
         <Routes>

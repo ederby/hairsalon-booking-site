@@ -1,3 +1,21 @@
+import AlertDialogCustom from "@/components/layout/AlertDialogCustom";
+import Spinner from "@/components/layout/Spinner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useActiveBookings } from "@/features/calendar/useActiveBookings";
+import { useStaff } from "@/hooks/useStaff";
+import sv from "@/lib/sv.json";
+import {
+  CalendarStaffMembers,
+  EventTemplate,
+  ExtraservicesType,
+  GuestInfoType,
+} from "@/services/types";
 import {
   L10n,
   loadCldr,
@@ -5,33 +23,26 @@ import {
   setCulture,
   setCurrencyCode,
 } from "@syncfusion/ej2-base";
+import * as svCalendars from "@syncfusion/ej2-cldr-data/main/sv/ca-gregorian.json";
+import * as svNumbers from "@syncfusion/ej2-cldr-data/main/sv/numbers.json";
+import * as svTimeZoneNames from "@syncfusion/ej2-cldr-data/main/sv/timeZoneNames.json";
 import {
   Agenda,
   Day,
   Inject,
   Month,
-  PopupOpenEventArgs,
   ScheduleComponent,
   ViewDirective,
   ViewsDirective,
   WorkWeek,
 } from "@syncfusion/ej2-react-schedule";
-import Spinner from "@/components/layout/Spinner";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useActiveBookings } from "@/features/calendar/useActiveBookings";
-import { useStaff } from "@/hooks/useStaff";
-import sv from "@/lib/sv.json";
-import { CalendarStaffMembers, EventTemplate } from "@/services/types";
-import * as svCalendars from "@syncfusion/ej2-cldr-data/main/sv/ca-gregorian.json";
-import * as svNumbers from "@syncfusion/ej2-cldr-data/main/sv/numbers.json";
-import * as svTimeZoneNames from "@syncfusion/ej2-cldr-data/main/sv/timeZoneNames.json";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { useEffect, useRef, useState } from "react";
-import { createRoot } from "react-dom/client";
-import { EventPopup } from "./ui/EventPopup";
+import CalendarEditForm from "./CalendarEditForm";
+import SchedulerContent from "./SchedulerContent";
+import SchedulerFooter from "./SchedulerFooter";
+import SchedulerHeader from "./SchedulerHeader";
 import { useDeleteBooking } from "./useDeleteBooking";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 loadCldr(svNumbers, svCalendars, svTimeZoneNames);
 setCulture("sv");
@@ -56,13 +67,49 @@ interface CalendarEvent {
   StaffColor?: string;
 }
 
-export const queryClient2 = new QueryClient();
+type CurrentBookingInfoType = {
+  resourceID: number;
+  subject: string;
+  guestInfo: GuestInfoType;
+  time: { startTime: string; endTime: string };
+  extraServices: ExtraservicesType[] | [];
+  id: number;
+  serviceID: number;
+  date: Date;
+};
+
+const CurrentBookingInfoInitialState = {
+  resourceID: 0,
+  subject: "",
+  guestInfo: {
+    email: "",
+    name: "",
+    observations: "",
+    phone: "",
+  },
+  time: {
+    startTime: "",
+    endTime: "",
+  },
+  extraServices: [],
+  id: 0,
+  serviceID: 0,
+  date: new Date(),
+};
 
 export default function Scheduler() {
   const { staff, fetchingStaff } = useStaff();
   const { activeBookings, isLoadingactiveBookings } = useActiveBookings();
   const isFirstRender = useRef(true);
   const { onDeleteBooking } = useDeleteBooking();
+  const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [currentBookingInfo, setCurrentBookingInfo] =
+    useState<CurrentBookingInfoType>(CurrentBookingInfoInitialState);
+
+  const currentStaffMember = staff?.find(
+    (member) => member.id === currentBookingInfo?.resourceID
+  );
 
   // Transform staff to fit the scheduler
   const staffMembers: CalendarStaffMembers[] | undefined = staff?.map(
@@ -113,14 +160,13 @@ export default function Scheduler() {
   // Filter bookings based on selected staff
   const [selectedStaff, setSelectedStaff] = useState<number[]>([]);
 
-  const handleCheckboxChange = (id: number) => {
-    console.log(id);
+  function handleCheckboxChange(id: number) {
     setSelectedStaff((prevSelectedStaff) =>
       prevSelectedStaff.includes(id)
         ? prevSelectedStaff.filter((staffId) => staffId !== id)
         : [...prevSelectedStaff, id]
     );
-  };
+  }
 
   const filteredAppointments = transformedBookings?.filter((appointment) =>
     selectedStaff?.includes(appointment.ResourceId)
@@ -134,7 +180,7 @@ export default function Scheduler() {
     }
   }, [staffMembers]);
 
-  const eventTemplate = (props: EventTemplate) => {
+  function eventTemplate(props: EventTemplate) {
     const formattedTime = `${format(
       new Date(props.StartTime),
       "HH:mm"
@@ -152,45 +198,98 @@ export default function Scheduler() {
         <p>{formattedTime}</p>
       </div>
     );
-  };
+  }
 
   const eventSettings = {
     dataSource: filteredAppointments,
     template: eventTemplate,
   };
 
-  const onEventRendered = (args: {
+  function onEventRendered(args: {
     element: HTMLElement;
     data: CalendarEvent;
-  }) => {
+  }) {
     const { StaffColor } = args.data;
     if (StaffColor) {
       args.element.style.backgroundColor = StaffColor;
       args.element.style.borderColor = StaffColor;
     }
-  };
+  }
 
-  // Open popup when clicking on an event
-  const scheduleRef = useRef<ScheduleComponent>(null);
-  const onPopupOpen = (args: PopupOpenEventArgs) => {
-    if (
-      args.type === "QuickInfo" ||
-      (args.type === "ViewEventInfo" && args.element)
-    ) {
-      args.cancel = false;
-      const root = createRoot(args.element);
-      root.render(
-        <QueryClientProvider client={queryClient2}>
-          <EventPopup
-            data={args.data as EventTemplate}
-            staff={staffMembers as CalendarStaffMembers[]}
-            onDeleteBooking={onDeleteBooking}
-            closePopup={() => scheduleRef.current?.closeQuickInfoPopup()}
-          />
-        </QueryClientProvider>
-      );
+  function handleDialogClose(isOpen: boolean) {
+    if (!isOpen) {
+      setCurrentBookingInfo(CurrentBookingInfoInitialState);
     }
-  };
+    setOpenDialog(isOpen);
+  }
+
+  const scheduleRef = useRef<ScheduleComponent>(null);
+
+  function QuickInfoHeaderTemplate(props: EventTemplate) {
+    if (props.elementType === "cell") return null;
+
+    return (
+      <SchedulerHeader
+        color={{ primary: props.StaffColor, secondary: props.SecondStaffColor }}
+        createdDate={props.BookingInfo?.createdAt as string}
+        closePopup={() => scheduleRef.current?.closeQuickInfoPopup()}
+      />
+    );
+  }
+
+  function QuickInfoContentTemplate(props: EventTemplate) {
+    if (props.elementType === "cell") return null;
+
+    const bookingInfo = {
+      resourceID: props.ResourceId,
+      subject: props.Subject,
+      guestInfo: props.GuestInfo,
+      time: {
+        startTime: props.StartTime.toString(),
+        endTime: props.EndTime.toString(),
+      },
+      extraServices: props.BookingInfo?.extraServices || [],
+      price: props.BookingInfo?.price || 0,
+    };
+
+    return <SchedulerContent bookingInfo={bookingInfo} />;
+  }
+
+  function QuickInfoFooterTemplate(props: EventTemplate) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const bookingInfo = {
+      resourceID: props.ResourceId || 0,
+      subject: props.Subject || "",
+      guestInfo: props.GuestInfo || {
+        email: "",
+        name: "",
+        observations: "",
+        phone: "",
+      },
+      time: {
+        startTime: format(props.StartTime, "HH:mm"),
+        endTime: format(props.EndTime, "HH:mm"),
+      },
+      extraServices: props.BookingInfo?.extraServices || [],
+      id: props.BookingInfo?.id || 0,
+      serviceID: props.BookingInfo?.serviceID || 0,
+      date: new Date(props.StartTime),
+    };
+
+    useEffect(() => {
+      setCurrentBookingInfo(bookingInfo);
+    }, [bookingInfo]);
+
+    if (props.elementType === "cell") return null;
+
+    return (
+      <SchedulerFooter
+        closePopup={() => scheduleRef.current?.closeQuickInfoPopup()}
+        setOpenAlertDialog={setOpenAlertDialog}
+        setOpenDialog={setOpenDialog}
+      />
+    );
+  }
 
   if (fetchingStaff || isLoadingactiveBookings) return <Spinner />;
 
@@ -222,9 +321,26 @@ export default function Scheduler() {
         endHour="19:00"
         eventSettings={eventSettings}
         eventRendered={onEventRendered}
-        popupOpen={onPopupOpen}
         workDays={[1, 2, 3, 4, 5, 6]}
         currentView="WorkWeek"
+        quickInfoTemplates={{
+          header: QuickInfoHeaderTemplate,
+          content: QuickInfoContentTemplate,
+          footer: QuickInfoFooterTemplate,
+        }}
+        cellClick={(args) => {
+          setCurrentBookingInfo((current) => {
+            return {
+              ...current,
+              time: {
+                startTime: format(args.startTime, "HH:mm"),
+                endTime: format(args.endTime, "HH:mm"),
+              },
+              date: args.startTime,
+            };
+          });
+          setOpenDialog(true);
+        }}
       >
         <ViewsDirective>
           <ViewDirective option="Day" />
@@ -234,6 +350,33 @@ export default function Scheduler() {
         </ViewsDirective>
         <Inject services={[Day, WorkWeek, Month, Agenda]} />
       </ScheduleComponent>
+
+      <Dialog open={openDialog} onOpenChange={handleDialogClose}>
+        <DialogContent className="overflow-y-auto max-h-full">
+          <DialogHeader>
+            <DialogTitle className="hidden">
+              {currentBookingInfo?.subject}
+            </DialogTitle>
+            <DialogDescription className="hidden"></DialogDescription>
+          </DialogHeader>
+          <CalendarEditForm
+            bookingInfo={currentBookingInfo}
+            currentStaffMember={currentStaffMember}
+            setOpenDialog={setOpenDialog}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialogCustom
+        title="Är du helt säker?"
+        description="Du håller på att radera denna bokning. Du kan inte ångra detta när den har raderats."
+        open={openAlertDialog}
+        setOpen={setOpenAlertDialog}
+        onClick={() =>
+          onDeleteBooking(currentBookingInfo ? currentBookingInfo.id : 0)
+        }
+        actionText="Radera"
+      />
     </>
   );
 }

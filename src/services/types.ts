@@ -69,7 +69,7 @@ export type BookingType = {
   service?: ServicesType;
   extraServices: ExtraservicesType[] | [];
   staff_id: number;
-  selectedDate: Date;
+  selectedDate: string;
   startTime: string;
   endTime: string;
   duration: number;
@@ -80,8 +80,8 @@ export type BookingInfoType = {
   price: number;
   id: number;
   serviceID: number;
-  createdAt: Date;
-  extraServices: ExtraservicesType[];
+  createdAt: string;
+  extraServices: ExtraservicesType[] | [];
   startTime: string;
   endTime: string;
   duration: number;
@@ -98,6 +98,7 @@ export interface EventTemplate {
   Subject: string;
   GuestInfo: GuestInfoType;
   BookingInfo?: BookingInfoType;
+  elementType: string;
 }
 
 export type CalendarStaffMembers = {
