@@ -109,3 +109,8 @@ input[type="time"]::-webkit-clear-button {
 input[type="time"]::-webkit-inner-spin-button {
   display: none;
 }
+
+.DropdownMenuContent {
+  width: var(--radix-dropdown-menu-trigger-width);
+  max-height: var(--radix-dropdown-menu-content-available-height);
+}

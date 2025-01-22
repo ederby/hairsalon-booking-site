@@ -217,6 +217,7 @@ export default function Scheduler() {
   }
 
   function handleDialogClose(isOpen: boolean) {
+    console.log("handleDialogClose");
     if (!isOpen) {
       setCurrentBookingInfo(CurrentBookingInfoInitialState);
     }
@@ -329,9 +330,9 @@ export default function Scheduler() {
           footer: QuickInfoFooterTemplate,
         }}
         cellClick={(args) => {
-          setCurrentBookingInfo((current) => {
+          setCurrentBookingInfo(() => {
             return {
-              ...current,
+              ...CurrentBookingInfoInitialState,
               time: {
                 startTime: format(args.startTime, "HH:mm"),
                 endTime: format(args.endTime, "HH:mm"),

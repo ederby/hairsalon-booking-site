@@ -43,7 +43,13 @@ import {
 } from "@/services/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sv } from "date-fns/locale";
-import { CalendarIcon, ChevronLeft, ChevronRight, X } from "lucide-react";
+import {
+  CalendarIcon,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -53,6 +59,12 @@ import { useCreateBooking } from "./useCreateBooking";
 import { useEditBooking } from "./useEditBooking";
 import { useServices } from "./useServices";
 import { format, startOfDay } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type CalendarEditFormProps = {
   currentStaffMember: StaffType | undefined;
@@ -257,11 +269,16 @@ export default function CalendarEditForm({
                 <Select
                   value={field.value}
                   onValueChange={(e) => {
+                    console.log(field.value);
                     field.onChange(e);
                   }}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Välj en tjänst" />
+                  <SelectTrigger className="">
+                    {field.value === "0" ? (
+                      <span>Välj en tjänst</span>
+                    ) : (
+                      <SelectValue placeholder="Välj en tjänst" />
+                    )}
                   </SelectTrigger>
                   <SelectContent>
                     {categories?.map((category) => (
@@ -291,63 +308,115 @@ export default function CalendarEditForm({
 
         <FormField
           control={form.control}
-          name="extraservices"
-          render={() => (
+          name="staff"
+          render={({ field }) => (
             <FormItem>
-              <FormLabel>Tilläggstjänster</FormLabel>
+              <FormLabel>Personal</FormLabel>
               <FormControl>
-                <Select onValueChange={(e) => handleExtraServiceChange(e)}>
+                <Select
+                  value={selectedStaff?.toString()}
+                  onValueChange={(e) => {
+                    setSelectedStaff(+e);
+                    field.onChange(e);
+                  }}
+                >
                   <SelectTrigger>
-                    <span>
-                      Välj{" "}
-                      {`${
-                        selectedExtraServices.length > 0
-                          ? "(" + selectedExtraServices.length + " valda)"
-                          : ""
-                      }`}
-                    </span>
+                    <SelectValue placeholder="Välj en person" />
                   </SelectTrigger>
                   <SelectContent>
-                    {extraServices
-                      ?.filter((extraService) => extraService.isActive)
-                      .map((extraService) => (
-                        <SelectItem
-                          key={extraService.id}
-                          value={extraService.id.toString()}
-                        >
-                          <span>{extraService.title}</span>
-                        </SelectItem>
-                      ))}
+                    {staff?.map((staffMember) => (
+                      <SelectItem
+                        key={staffMember.id}
+                        value={staffMember.id.toString()}
+                      >
+                        <span>{staffMember.name}</span>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormControl>
               <FormMessage />
-              <ul className="flex text-[11px] gap-1 flex-wrap">
-                {extraServices
-                  ?.filter((service) =>
-                    selectedExtraServices.includes(service.id)
-                  )
-                  .map((service) => (
-                    <li
-                      className="flex gap-1 bg-teal-600 text-teal-50 py-1 px-2 rounded font-semibold"
-                      key={service.id}
-                    >
-                      <X
-                        size={16}
-                        strokeWidth={1.5}
-                        className="cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteExtraService(service.id);
-                        }}
-                      />
-                      {service.title}
-                    </li>
-                  ))}
-              </ul>
             </FormItem>
           )}
         />
+
+        <div className="w-full">
+          <FormField
+            control={form.control}
+            name="extraservices"
+            render={() => (
+              <FormItem>
+                <FormLabel>Tilläggstjänster</FormLabel>
+                <FormControl>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between hover:bg-transparent hover:border-zinc-200 hover:text-zinc-900 py-1 h-9"
+                      >
+                        <span className="font-normal">
+                          Välj{" "}
+                          {`${
+                            selectedExtraServices.length > 0
+                              ? "(" + selectedExtraServices.length + " valda)"
+                              : ""
+                          }`}
+                        </span>
+                        <ChevronDown className="text-zinc-500" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      className="DropdownMenuContent"
+                    >
+                      {extraServices
+                        ?.filter((extraService) => extraService.isActive)
+                        .map((extraService) => {
+                          return (
+                            <DropdownMenuCheckboxItem
+                              className="w-full"
+                              key={extraService.id}
+                              checked={selectedExtraServices.includes(
+                                extraService.id
+                              )}
+                              onCheckedChange={() => {
+                                handleExtraServiceChange(
+                                  extraService.id.toString()
+                                );
+                              }}
+                            >
+                              {extraService.title}
+                            </DropdownMenuCheckboxItem>
+                          );
+                        })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <ul className="flex text-[11px] gap-1 flex-wrap mt-2">
+            {extraServices
+              ?.filter((service) => selectedExtraServices.includes(service.id))
+              .map((service) => (
+                <li
+                  className="flex gap-1 bg-teal-600 text-teal-50 py-1 px-2 rounded font-semibold"
+                  key={service.id}
+                >
+                  <X
+                    size={16}
+                    strokeWidth={1.5}
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteExtraService(service.id);
+                    }}
+                  />
+                  {service.title}
+                </li>
+              ))}
+          </ul>
+        </div>
 
         <FormField
           control={form.control}
@@ -395,7 +464,7 @@ export default function CalendarEditForm({
                     <Button
                       variant={"outline"}
                       className={cn(
-                        "justify-start text-left font-normal",
+                        "justify-start text-left font-normal h-9",
                         !field.value && "text-muted-foreground"
                       )}
                     >
@@ -453,7 +522,7 @@ export default function CalendarEditForm({
                       <div className="flex">
                         <Button
                           type="button"
-                          className="rounded-r-none border-r-0 px-2"
+                          className="rounded-r-none border-r-0 px-2 h-9 text-zinc-500"
                           variant="outline"
                           onClick={() => {
                             field.onChange(incrementTime(field.value, -15));
@@ -473,7 +542,7 @@ export default function CalendarEditForm({
                           <ChevronLeft size={16} strokeWidth={1.5} />
                         </Button>
                         <Input
-                          className={`rounded-none h-full shadow-none justify-center relative z-10 ${
+                          className={`rounded-none shadow-none justify-center relative z-10 h-9 ${
                             isBeforeOpeningTime ? "text-red-500" : ""
                           }`}
                           type="time"
@@ -492,7 +561,7 @@ export default function CalendarEditForm({
                         />
                         <Button
                           type="button"
-                          className="rounded-l-none border-l-0 px-2"
+                          className="rounded-l-none border-l-0 px-2 h-9 text-zinc-500"
                           variant="outline"
                           onClick={() => {
                             field.onChange(incrementTime(field.value, 15));
@@ -517,7 +586,7 @@ export default function CalendarEditForm({
                 )}
               />
 
-              <span className="mx-2 mt-2">{"–"}</span>
+              <span className="mx-2 mt-1">{"–"}</span>
 
               <FormField
                 control={form.control}
@@ -528,7 +597,7 @@ export default function CalendarEditForm({
                       <div className="flex items-center">
                         <Button
                           type="button"
-                          className="rounded-r-none border-r-0 px-2"
+                          className="rounded-r-none border-r-0 px-2 h-9 text-zinc-500"
                           variant="outline"
                           onClick={() => {
                             field.onChange(incrementTime(field.value, -15));
@@ -547,7 +616,7 @@ export default function CalendarEditForm({
                           <ChevronLeft size={16} strokeWidth={1.5} />
                         </Button>
                         <Input
-                          className={`rounded-none h-full shadow-none justify-center relative z-10 ${
+                          className={`rounded-none shadow-none justify-center relative z-10 h-9 ${
                             isAfterOpeningTime ? "text-red-500" : ""
                           }`}
                           type="time"
@@ -574,7 +643,7 @@ export default function CalendarEditForm({
                         />
                         <Button
                           type="button"
-                          className="rounded-l-none border-l-0 px-2"
+                          className="rounded-l-none border-l-0 px-2 h-9 text-zinc-500"
                           variant="outline"
                           onClick={() => {
                             field.onChange(incrementTime(field.value, 15));
