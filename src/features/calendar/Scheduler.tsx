@@ -7,9 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveBookings } from "@/features/calendar/useActiveBookings";
 import { useStaff } from "@/hooks/useStaff";
 import sv from "@/lib/sv.json";
+import Calendar from "@/pages/Calendar";
 import {
   CalendarStaffMembers,
   EventTemplate,
@@ -32,12 +34,16 @@ import {
   Inject,
   Month,
   ScheduleComponent,
+  ToolbarItemDirective,
+  ToolbarItemsDirective,
   ViewDirective,
   ViewsDirective,
   WorkWeek,
 } from "@syncfusion/ej2-react-schedule";
 import { format, parseISO } from "date-fns";
 import { useEffect, useRef, useState } from "react";
+import BookingHistory from "./BookingHistory";
+import BookingPersonelDropdown from "./BookingPersonelDropdown";
 import CalendarEditForm from "./CalendarEditForm";
 import SchedulerContent from "./SchedulerContent";
 import SchedulerFooter from "./SchedulerFooter";
@@ -104,11 +110,14 @@ export default function Scheduler() {
   const { onDeleteBooking } = useDeleteBooking();
   const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [currentBookingInfo, setCurrentBookingInfo] =
-    useState<CurrentBookingInfoType>(CurrentBookingInfoInitialState);
+  const [selectedStaff, setSelectedStaff] = useState<number[]>([]);
+
+  const currentBookingInfo = useRef<CurrentBookingInfoType>(
+    CurrentBookingInfoInitialState
+  );
 
   const currentStaffMember = staff?.find(
-    (member) => member.id === currentBookingInfo?.resourceID
+    (member) => member.id === currentBookingInfo.current.resourceID
   );
 
   // Transform staff to fit the scheduler
@@ -156,17 +165,6 @@ export default function Scheduler() {
       },
     };
   });
-
-  // Filter bookings based on selected staff
-  const [selectedStaff, setSelectedStaff] = useState<number[]>([]);
-
-  function handleCheckboxChange(id: number) {
-    setSelectedStaff((prevSelectedStaff) =>
-      prevSelectedStaff.includes(id)
-        ? prevSelectedStaff.filter((staffId) => staffId !== id)
-        : [...prevSelectedStaff, id]
-    );
-  }
 
   const filteredAppointments = transformedBookings?.filter((appointment) =>
     selectedStaff?.includes(appointment.ResourceId)
@@ -219,7 +217,7 @@ export default function Scheduler() {
   function handleDialogClose(isOpen: boolean) {
     console.log("handleDialogClose");
     if (!isOpen) {
-      setCurrentBookingInfo(CurrentBookingInfoInitialState);
+      currentBookingInfo.current = CurrentBookingInfoInitialState;
     }
     setOpenDialog(isOpen);
   }
@@ -278,7 +276,7 @@ export default function Scheduler() {
     };
 
     useEffect(() => {
-      setCurrentBookingInfo(bookingInfo);
+      currentBookingInfo.current = bookingInfo;
     }, [bookingInfo]);
 
     if (props.elementType === "cell") return null;
@@ -296,22 +294,13 @@ export default function Scheduler() {
 
   return (
     <>
-      <div className="inline-flex h-10 items-center space-x-1 rounded-md border bg-background p-1 mb-2">
-        {staffMembers?.map((s) => (
-          <button
-            key={s.id}
-            className="rounded-sm px-3 py-1.5 text-sm font-medium text-zinc-700"
-            style={{
-              backgroundColor: selectedStaff.includes(s.id)
-                ? s.color?.at(0)
-                : "",
-              color: selectedStaff.includes(s.id) ? s.color?.at(1) : "",
-            }}
-            onClick={() => handleCheckboxChange(s.id)}
-          >
-            {s.text}
-          </button>
-        ))}
+      <div className="flex justify-between mb-2">
+        <BookingPersonelDropdown
+          selectedStaff={selectedStaff}
+          setSelectedStaff={setSelectedStaff}
+          staffMembers={staffMembers}
+        />
+        <BookingHistory />
       </div>
 
       <ScheduleComponent
@@ -330,16 +319,14 @@ export default function Scheduler() {
           footer: QuickInfoFooterTemplate,
         }}
         cellClick={(args) => {
-          setCurrentBookingInfo(() => {
-            return {
-              ...CurrentBookingInfoInitialState,
-              time: {
-                startTime: format(args.startTime, "HH:mm"),
-                endTime: format(args.endTime, "HH:mm"),
-              },
-              date: args.startTime,
-            };
-          });
+          currentBookingInfo.current = {
+            ...CurrentBookingInfoInitialState,
+            time: {
+              startTime: format(args.startTime, "HH:mm"),
+              endTime: format(args.endTime, "HH:mm"),
+            },
+            date: args.startTime,
+          };
           setOpenDialog(true);
         }}
       >
@@ -349,19 +336,34 @@ export default function Scheduler() {
           <ViewDirective option="Month" />
           <ViewDirective option="Agenda" />
         </ViewsDirective>
-        <Inject services={[Day, WorkWeek, Month, Agenda]} />
+        <Inject services={[WorkWeek, Day, Month, Agenda]} />
+        <ToolbarItemsDirective>
+          <ToolbarItemDirective
+            name="Previous"
+            align="Left"
+          ></ToolbarItemDirective>
+          <ToolbarItemDirective name="Next" align="Left"></ToolbarItemDirective>
+          <ToolbarItemDirective
+            name="DateRangeText"
+            align="Left"
+          ></ToolbarItemDirective>
+          <ToolbarItemDirective
+            name="Views"
+            align="Right"
+          ></ToolbarItemDirective>
+        </ToolbarItemsDirective>
       </ScheduleComponent>
 
       <Dialog open={openDialog} onOpenChange={handleDialogClose}>
         <DialogContent className="overflow-y-auto max-h-full">
           <DialogHeader>
             <DialogTitle className="hidden">
-              {currentBookingInfo?.subject}
+              {currentBookingInfo.current.subject}
             </DialogTitle>
             <DialogDescription className="hidden"></DialogDescription>
           </DialogHeader>
           <CalendarEditForm
-            bookingInfo={currentBookingInfo}
+            bookingInfo={currentBookingInfo.current}
             currentStaffMember={currentStaffMember}
             setOpenDialog={setOpenDialog}
           />
@@ -374,7 +376,9 @@ export default function Scheduler() {
         open={openAlertDialog}
         setOpen={setOpenAlertDialog}
         onClick={() =>
-          onDeleteBooking(currentBookingInfo ? currentBookingInfo.id : 0)
+          onDeleteBooking(
+            currentBookingInfo ? currentBookingInfo.current.id : 0
+          )
         }
         actionText="Radera"
       />
