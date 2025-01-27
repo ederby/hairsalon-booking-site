@@ -28,8 +28,6 @@ export default function BookingPersonelDropdown({
     );
   }
 
-  console.log(staffMembers);
-
   return (
     <div>
       <DropdownMenu>

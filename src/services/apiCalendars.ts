@@ -6,6 +6,7 @@ export async function getActiveBookings(): Promise<BookingType[]> {
   const { data, error } = await supabase
     .from("bookings")
     .select("*")
+    .eq("canceled", false)
     .gte("selectedDate", today);
 
   if (error) {
@@ -40,7 +41,7 @@ export async function getServices(): Promise<ServicesType[]> {
 }
 
 type EditNewBookingType = {
-  booking: Omit<BookingType, "id" | "created_at">;
+  booking: Omit<BookingType, "id" | "created_at" | "canceled">;
   id: number;
 };
 export async function editBooking({
@@ -60,11 +61,36 @@ export async function editBooking({
 
 export async function createBooking({
   booking,
-}: Omit<EditNewBookingType, "id">): Promise<void> {
-  const { error } = await supabase.from("bookings").insert([booking]);
+}: Omit<EditNewBookingType, "id" | "canceled">): Promise<void> {
+  const { error } = await supabase
+    .from("bookings")
+    .insert([{ ...booking, canceled: false }]);
 
   if (error) {
     console.error("Bokningen kunde inte skapas.");
     throw new Error("Bokningen kunde inte skapas.");
+  }
+}
+
+export async function getAllBookings(): Promise<BookingType[]> {
+  const { data, error } = await supabase.from("bookings").select("*");
+
+  if (error) {
+    console.error("Bokningarna kunde inte hämtas.");
+    throw new Error("Bokningarna kunde inte hämtas.");
+  }
+
+  return data;
+}
+
+export async function cancelBooking(id: number): Promise<void> {
+  const { error } = await supabase
+    .from("bookings")
+    .update({ canceled: true })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Bokningen kunde inte avbokas.");
+    throw new Error("Bokningen kunde inte avbokas.");
   }
 }

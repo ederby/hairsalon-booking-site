@@ -1,32 +1,30 @@
 import { useToast } from "@/hooks/use-toast";
-import { deleteBooking } from "@/services/apiCalendars";
+import { cancelBooking } from "@/services/apiCalendars";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export function useDeleteBooking() {
+export function useCancelBooking() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const { mutate: onDeleteBooking, isPending: isDeletingBooking } = useMutation(
-    {
-      mutationFn: deleteBooking,
+  const { mutate: onCancelBooking, isPending: isCancelingBooking } =
+    useMutation({
+      mutationFn: cancelBooking,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["activebookings"] });
         queryClient.invalidateQueries({ queryKey: ["allbookings"] });
         toast({
           title: "Hurra!",
-          description: "Bokning har raderats",
+          description: "Bokningen har avbokats",
           onSuccess: true,
         });
       },
       onError: () => {
         toast({
           title: "Attans!",
-          description: "Bokning kunde inte raderas",
+          description: "Bokningen kunde inte avbokas",
           onSuccess: false,
         });
       },
-    }
-  );
+    });
 
-  return { onDeleteBooking, isDeletingBooking };
+  return { onCancelBooking, isCancelingBooking };
 }

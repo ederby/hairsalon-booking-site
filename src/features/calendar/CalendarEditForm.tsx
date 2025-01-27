@@ -79,6 +79,7 @@ type CalendarEditFormProps = {
     guestInfo: GuestInfoType;
     date: Date;
   };
+  bookAgain?: boolean;
 };
 
 type OnSubmitType = {
@@ -115,6 +116,7 @@ export default function CalendarEditForm({
   currentStaffMember,
   setOpenDialog,
   bookingInfo,
+  bookAgain = false,
 }: CalendarEditFormProps): JSX.Element {
   const { services, isLoadingServices } = useServices();
   const { categories, isLoadingCategories } = useCategories();
@@ -183,17 +185,18 @@ export default function CalendarEditForm({
       phone: data.phone,
       observations: data.observations,
     };
-    const currentBooking: Omit<BookingType, "id" | "created_at"> = {
-      category: newCategory,
-      service: newService,
-      extraServices: newExtraServices || [],
-      staff_id: newStaff,
-      selectedDate: newDate,
-      startTime: data.startTime,
-      endTime: data.endTime,
-      duration: newDuration,
-      guestInfo: newGuestInfo,
-    };
+    const currentBooking: Omit<BookingType, "id" | "created_at" | "canceled"> =
+      {
+        category: newCategory,
+        service: newService,
+        extraServices: newExtraServices || [],
+        staff_id: newStaff,
+        selectedDate: newDate,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        duration: newDuration,
+        guestInfo: newGuestInfo,
+      };
 
     if (data.id === 0) onCreateBooking({ booking: currentBooking });
     if (data.id !== 0)
@@ -269,7 +272,6 @@ export default function CalendarEditForm({
                 <Select
                   value={field.value}
                   onValueChange={(e) => {
-                    console.log(field.value);
                     field.onChange(e);
                   }}
                 >
@@ -757,7 +759,11 @@ export default function CalendarEditForm({
           <DialogClose asChild>
             <Button
               type="submit"
-              disabled={!form.formState.isDirty || !isValid}
+              disabled={
+                isValid && bookAgain
+                  ? false
+                  : !form.formState.isDirty || !isValid
+              }
             >{`${
               form.formState.isSubmitting || isEditingBooking
                 ? bookingInfo.id !== 0

@@ -10,6 +10,7 @@ export function useCreateBooking() {
       mutationFn: createBooking,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["activebookings"] });
+        queryClient.invalidateQueries({ queryKey: ["allbookings"] });
         toast({
           title: "Hurra!",
           description: "Bokningen har skapats",

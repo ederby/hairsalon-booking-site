@@ -65,7 +65,7 @@ export default function CategoryListItem({
       value={title}
       className={`${openAlertDialog ? "bg-red-100" : ""} ${
         openResponsiveDialog ? "bg-teal-100" : ""
-      } hover:bg-teal-50 relative data-[state=open]:bg-zinc-100 px-2 border-b last:border-b-0`}
+      } hover:bg-teal-50 relative data-[state=open]:bg-zinc-50 px-2 border-b last:border-b-0`}
     >
       <AccordionTrigger>
         {isEditingCategory ? (
@@ -111,11 +111,11 @@ export default function CategoryListItem({
 
       <DropdownMenuCustom className="absolute right-8 top-6">
         <DropdownMenuItem onSelect={() => setOpenResponsiveDialog((s) => !s)}>
-          <Pencil />
+          <Pencil strokeWidth={1.5} />
           Redigera
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => setOpenAlertDialog((s) => !s)}>
-          <CircleX />
+          <CircleX strokeWidth={1.5} />
           Radera
         </DropdownMenuItem>
       </DropdownMenuCustom>

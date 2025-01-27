@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CircleX, Pencil } from "lucide-react";
+import { CalendarX2, Pencil } from "lucide-react";
 
 type SchedulerFooterType = {
   closePopup: () => void;
@@ -21,8 +21,8 @@ export default function SchedulerFooter({
         }}
         variant="outline"
       >
-        <CircleX />
-        <span>Radera</span>
+        <CalendarX2 strokeWidth={1.5} />
+        <span>Avboka</span>
       </Button>
       <Button
         onClick={() => {

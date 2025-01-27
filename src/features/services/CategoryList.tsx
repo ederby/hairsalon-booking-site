@@ -93,7 +93,7 @@ export default function CategoryList({
               title="Skapa en ny kategori"
               trigger={
                 <Button variant="outline">
-                  <Plus /> Skapa ny kategori
+                  <Plus strokeWidth={1.5} /> Skapa ny kategori
                 </Button>
               }
             >

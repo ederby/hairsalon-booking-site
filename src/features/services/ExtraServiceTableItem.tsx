@@ -55,12 +55,12 @@ export default function ExtraServiceTableItem({
             <DropdownMenuItem
               onSelect={() => setOpenResponsiveDialog((s) => !s)}
             >
-              <Pencil />
+              <Pencil strokeWidth={1.5} />
               Redigera
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onSelect={() => setOpenAlertDialog((s) => !s)}>
-            <CircleX />
+            <CircleX strokeWidth={1.5} />
             Radera
           </DropdownMenuItem>
           <DropdownMenuItem

@@ -48,7 +48,7 @@ export default function ServiceListItem({
           ? "bg-teal-100"
           : openAlertDialog
           ? "bg-red-100"
-          : "odd:bg-zinc-50"
+          : "odd:bg-white"
       } flex justify-between items-center w-full py-4 px-3 border-b first:border-t border-zinc-200 border-l border-r transition-all first:rounded-t last:rounded-b relative overflow-hidden`}
     >
       <div
@@ -56,7 +56,7 @@ export default function ServiceListItem({
         {...listeners}
         className="absolute top-0 left-0 bottom-0 border-r flex justify-center items-center cursor-move touch-none"
       >
-        <GripVertical strokeWidth={1} color="#71717a" />
+        <GripVertical strokeWidth={1} className="text-zinc-500" />
       </div>
       <div data-no-dnd="true" className="flex gap-2 items-center ml-6">
         {isDeletingService || isEditingService ? (
@@ -95,7 +95,7 @@ export default function ServiceListItem({
                 setOpenResponsiveDialog((s) => !s);
               }}
             >
-              <Pencil />
+              <Pencil strokeWidth={1.5} />
               Redigera
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -103,7 +103,7 @@ export default function ServiceListItem({
                 setOpenAlertDialog((s) => !s);
               }}
             >
-              <CircleX />
+              <CircleX strokeWidth={1.5} />
               Radera
             </DropdownMenuItem>
           </DropdownMenuCustom>

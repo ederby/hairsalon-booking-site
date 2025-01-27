@@ -74,6 +74,7 @@ export type BookingType = {
   endTime: string;
   duration: number;
   guestInfo: GuestInfoType;
+  canceled: boolean;
 };
 
 export type BookingInfoType = {
