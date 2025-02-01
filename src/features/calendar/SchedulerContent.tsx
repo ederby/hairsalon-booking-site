@@ -11,7 +11,9 @@ type SchedulerContentType = {
     price: number;
     resourceID: number;
     subject: string;
-    time: { startTime: string; endTime: string };
+    startTime: string;
+    endTime: string;
+    breakBooking: boolean;
   };
 };
 
@@ -25,7 +27,7 @@ export default function SchedulerContent({
   );
 
   const formattedBookingDate = format(
-    new Date(bookingInfo.time.startTime),
+    new Date(bookingInfo.startTime),
     "d'e' MMMM",
     {
       locale: sv,
@@ -43,7 +45,7 @@ export default function SchedulerContent({
   return (
     <div className="text-zinc-700 relative py-2 grow">
       <div className="flex items-center gap-1 justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2">
           <div>
             <h3 className="scroll-m-20 text-sm font-semibold tracking-tight leading-6">
               {bookingInfo.subject}
@@ -52,6 +54,9 @@ export default function SchedulerContent({
               {currentStaffMember?.name}
             </p>
           </div>
+          {bookingInfo.breakBooking && bookingInfo.guestInfo.name && (
+            <span className="">{bookingInfo.guestInfo.name}</span>
+          )}
         </div>
       </div>
 
@@ -80,42 +85,47 @@ export default function SchedulerContent({
         <div className="w-full flex justify-between items-center">
           <span className="text-zinc-400">Tid</span>
           <span>
-            {format(bookingInfo.time.startTime, "HH:mm")} -{" "}
-            {format(bookingInfo.time.endTime, "HH:mm")}
+            {format(bookingInfo.startTime, "HH:mm")} -{" "}
+            {format(bookingInfo.endTime, "HH:mm")}
           </span>
         </div>
 
-        <div className="w-full flex justify-between items-center">
-          <span className="text-zinc-400">Totalpris</span>
-          <span>{totalPrice} kr</span>
-        </div>
-      </div>
-
-      <Separator className="my-3" />
-
-      <div className="mt-2 flex flex-col gap-1.5">
-        <div className="w-full flex justify-between items-center">
-          <span className="text-zinc-400">Bokare</span>
-          <span>{bookingInfo.guestInfo.name}</span>
-        </div>
-
-        <div className="w-full flex justify-between items-center">
-          <span className="text-zinc-400">Email</span>
-          <span>{bookingInfo.guestInfo.email}</span>
-        </div>
-
-        <div className="w-full flex justify-between items-center">
-          <span className="text-zinc-400">Tel</span>
-          <span>{bookingInfo.guestInfo?.phone}</span>
-        </div>
-
-        {bookingInfo.guestInfo.observations && (
+        {!bookingInfo.breakBooking && (
           <div className="w-full flex justify-between items-center">
-            <span className="text-zinc-400">Obs</span>
-            <span>{bookingInfo.guestInfo.observations}</span>
+            <span className="text-zinc-400">Totalpris</span>
+            <span>{totalPrice} kr</span>
           </div>
         )}
       </div>
+      {!bookingInfo.breakBooking && (
+        <>
+          <Separator className="my-3" />
+
+          <div className="mt-2 flex flex-col gap-1.5">
+            <div className="w-full flex justify-between items-center">
+              <span className="text-zinc-400">Bokare</span>
+              <span>{bookingInfo.guestInfo.name}</span>
+            </div>
+
+            <div className="w-full flex justify-between items-center">
+              <span className="text-zinc-400">Email</span>
+              <span>{bookingInfo.guestInfo.email}</span>
+            </div>
+
+            <div className="w-full flex justify-between items-center">
+              <span className="text-zinc-400">Tel</span>
+              <span>{bookingInfo.guestInfo?.phone}</span>
+            </div>
+
+            {bookingInfo.guestInfo.observations && (
+              <div className="w-full flex justify-between items-center">
+                <span className="text-zinc-400">Obs</span>
+                <span>{bookingInfo.guestInfo.observations}</span>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

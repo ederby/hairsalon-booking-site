@@ -98,7 +98,7 @@
   border: none;
 }
 .e-schedule {
-  overflow: visible;
+  overflow: visible !important;
 }
 input[type="time"]::-webkit-calendar-picker-indicator {
   display: none;
@@ -316,7 +316,7 @@ input[type="time"]::-webkit-inner-spin-button {
   background: #f4f4f5;
 }
 .e-schedule .e-vertical-view .e-work-cells {
-  background: #fafafa;
+  background: #f4f4f5;
 }
 .e-schedule .e-vertical-view .e-work-cells.e-work-hours {
   background: #fff;
@@ -324,4 +324,28 @@ input[type="time"]::-webkit-inner-spin-button {
 .e-schedule .e-month-view .e-other-month,
 .e-schedule .e-month-agenda-view .e-other-month {
   background: #fafafa;
+}
+.e-schedule .e-vertical-view .e-date-header-wrap table tbody td {
+  position: relative;
+}
+
+.e-schedule .e-vertical-view .e-work-cells:hover {
+  background: #f0fdfa;
+}
+.e-calendar .e-content td.e-today.e-selected span.e-day {
+  box-shadow: inset 1px 0 #0d9488, inset 0 1px #0d9488, inset -1px 0 #0d9488,
+    inset 0 -1px #0d9488;
+  background: #0d9488;
+}
+.e-calendar .e-content td.e-selected span.e-day {
+  background: #0d9488;
+}
+.e-schedule .e-agenda-view .e-appointment.e-appointment-border,
+.e-schedule .e-agenda-view .e-appointment:hover {
+  background: transparent;
+  cursor: pointer;
+}
+.e-schedule .e-agenda-view .e-day-date-header.e-current-day {
+  font-weight: 600;
+  color: #0d9488;
 }

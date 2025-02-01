@@ -7,6 +7,24 @@ import {
   ExtraservicesType,
 } from "./types";
 
+type ToggleServiceType = {
+  id: number;
+  isActive: boolean;
+};
+type CreateCategoryType = {
+  title: string;
+  description: string;
+  image?: File | undefined;
+  staff: number[];
+};
+type CreateCategoryDataType = {
+  id: number;
+  description: string;
+  title: string;
+  order: null;
+  image: string | null;
+};
+
 async function uploadImageToBucket(
   image: File | undefined
 ): Promise<string | undefined> {
@@ -54,20 +72,6 @@ export async function editCategories(
     throw new Error("Category could not be edited.");
   }
 }
-
-type CreateCategoryType = {
-  title: string;
-  description: string;
-  image?: File | undefined;
-  staff: number[];
-};
-type CreateCategoryDataType = {
-  id: number;
-  description: string;
-  title: string;
-  order: null;
-  image: string | null;
-};
 
 export async function createCategory(
   category: CreateCategoryType
@@ -177,10 +181,6 @@ export async function deleteService(id: number): Promise<void> {
   }
 }
 
-type ToggleServiceType = {
-  id: number;
-  isActive: boolean;
-};
 export async function toggleService({
   id,
   isActive,

@@ -36,15 +36,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useBookingHistory } from "@/context/BookingHistoryContext";
+import { useCalendar } from "@/context/CalendarContext";
 import { useStaff } from "@/hooks/useStaff";
 import { incrementTime, reduceExtraServicesDuration } from "@/lib/helpers";
-import { BookingType } from "@/services/types";
 import { format } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { bookingHistoryColumns } from "./BookingHistoryColumns";
 import BookingInfo from "./BookingInfo";
 import CalendarEditForm from "./CalendarEditForm";
+import { useAllBookings } from "./useAllBookings";
 import { useDeleteBooking } from "./useDeleteBooking";
 
 interface TransformedBookingType {
@@ -55,46 +56,43 @@ interface TransformedBookingType {
   id: number;
 }
 
-interface DataTableProps {
-  allBookings: BookingType[];
-}
-
-export default function BookingHistoryDataTable({
-  allBookings,
-}: DataTableProps) {
+export default function BookingHistoryDataTable(): JSX.Element {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [statusFilter, setStatusFilter] = useState<
     "all" | "canceled" | "expired" | "booked" | ""
   >("");
 
-  const { staff, fetchingStaff } = useStaff();
+  const { fetchingStaff } = useStaff();
   const { onDeleteBooking } = useDeleteBooking();
+  const { openDialog, setOpenDialog, openAlertDialog, setOpenAlertDialog } =
+    useCalendar();
   const {
     currentBookingID,
-    openDialog,
-    setOpenDialog,
     setCurrentBookingID,
     currentSorted,
     setCurrentSorted,
     bookAgain,
-    openAlertDialog,
-    setOpenAlertDialog,
   } = useBookingHistory();
+  const { currentBookingInfo } = useCalendar();
+  const { allBookings, isLoadingAllBookings } = useAllBookings();
 
   const transformedBookings: TransformedBookingType[] = useMemo(
     () =>
-      allBookings?.map((booking) => ({
-        date: format(new Date(booking.selectedDate), "dd-MM-yy"),
-        service: booking.service?.title,
-        status: booking.canceled
-          ? "Avbokad"
-          : booking.selectedDate < new Date().toISOString()
-          ? "Utgången"
-          : "Bokad",
-        customerName: booking.guestInfo.name,
-        id: booking.id,
-      })) ?? [],
+      allBookings
+        ?.filter((booking) => !booking.break)
+        .map((booking) => ({
+          date: booking.selectedDate,
+          service: booking.service?.title,
+          status: booking.canceled
+            ? "Avbokad"
+            : booking.selectedDate < format(new Date(), "yyyy-MM-dd") ||
+              booking.selectedDate !== format(new Date(), "yyyy-MM-dd")
+            ? "Utgången"
+            : "Bokad",
+          customerName: booking.guestInfo.name,
+          id: booking.id,
+        })) ?? [],
     [allBookings]
   );
 
@@ -113,11 +111,11 @@ export default function BookingHistoryDataTable({
   const memoizedColumns = useMemo(
     () =>
       bookingHistoryColumns(
-        setOpenDialog,
         setCurrentBookingID,
+        setOpenAlertDialog,
         currentSorted,
         setCurrentSorted,
-        setOpenAlertDialog
+        setOpenDialog
       ),
     [
       setOpenDialog,
@@ -128,15 +126,11 @@ export default function BookingHistoryDataTable({
     ]
   );
 
-  const currentBooking = allBookings.find(
+  const currentBooking = allBookings?.find(
     (booking) => booking.id === currentBookingID
   );
 
-  const currentStaffMember = staff?.find(
-    (member) => member.id === currentBooking?.staff_id
-  );
-
-  const currentNewBooking = {
+  currentBookingInfo.current = {
     resourceID: currentBooking?.staff_id ?? 0,
     subject: currentBooking?.service?.title ?? "",
     guestInfo: {
@@ -145,14 +139,12 @@ export default function BookingHistoryDataTable({
       observations: currentBooking?.guestInfo.observations ?? "",
       phone: currentBooking?.guestInfo.phone ?? "",
     },
-    time: {
-      startTime: format(new Date(), "HH:mm"),
-      endTime: incrementTime(
-        format(new Date(), "HH:mm"),
-        currentBooking?.duration ||
-          0 + reduceExtraServicesDuration(currentBooking?.extraServices)
-      ),
-    },
+    startTime: format(new Date(), "HH:mm"),
+    endTime: incrementTime(
+      format(new Date(), "HH:mm"),
+      currentBooking?.duration ||
+        0 + reduceExtraServicesDuration(currentBooking?.extraServices)
+    ),
     extraServices: currentBooking?.extraServices ?? [],
     id: 0,
     serviceID: currentBooking?.service?.id ?? 0,
@@ -174,7 +166,7 @@ export default function BookingHistoryDataTable({
     },
   });
 
-  if (fetchingStaff) return <Spinner />;
+  if (fetchingStaff || isLoadingAllBookings) return <Spinner />;
 
   return (
     <>
@@ -294,19 +286,14 @@ export default function BookingHistoryDataTable({
         </div>
       )}
 
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+      <Dialog open={openAlertDialog} onOpenChange={setOpenAlertDialog}>
         <DialogContent className="overflow-y-auto max-h-full">
           <DialogHeader>
             <DialogTitle className="hidden"></DialogTitle>
             <DialogDescription className="hidden"></DialogDescription>
           </DialogHeader>
           {bookAgain ? (
-            <CalendarEditForm
-              bookingInfo={currentNewBooking}
-              currentStaffMember={currentStaffMember}
-              setOpenDialog={setOpenDialog}
-              bookAgain={true}
-            />
+            <CalendarEditForm bookAgain={true} />
           ) : (
             <BookingInfo booking={currentBooking} />
           )}
@@ -316,8 +303,8 @@ export default function BookingHistoryDataTable({
       <AlertDialogCustom
         title="Är du helt säker?"
         description="Du håller på att radera denna bokning. Du kan inte ångra detta när den har raderats."
-        open={openAlertDialog}
-        setOpen={setOpenAlertDialog}
+        open={openDialog}
+        setOpen={setOpenDialog}
         onClick={() => onDeleteBooking(currentBooking?.id ?? -1)}
         actionText="Radera"
       />

@@ -62,6 +62,18 @@ export type GuestInfoType = {
   observations?: string;
 };
 
+export type FilteredAppointments = {
+  Id: number;
+  Subject: string | undefined;
+  StartTime: string;
+  EndTime: string;
+  IsAllDay: boolean;
+  ResourceId: number;
+  Break: boolean;
+  GuestInfo: GuestInfoType;
+  BookingInfo: BookingInfoType;
+};
+
 export type BookingType = {
   id: number;
   created_at: Date;
@@ -75,6 +87,29 @@ export type BookingType = {
   duration: number;
   guestInfo: GuestInfoType;
   canceled: boolean;
+  break: boolean;
+};
+
+export type EditBookingType = {
+  id: number;
+  serviceID: number;
+  extraServices: ExtraservicesType[] | [];
+  startTime: string;
+  endTime: string;
+  subject: string;
+  resourceID: number;
+  guestInfo: GuestInfoType;
+  date: Date;
+};
+
+export type BreakType = {
+  duration: number;
+  startTime: string;
+  endTime: string;
+  staff_id: number;
+  service: string;
+  selectedDate: string;
+  notes: string | undefined;
 };
 
 export type BookingInfoType = {
@@ -93,18 +128,18 @@ export interface EventTemplate {
   Guid: string;
   isAllDay: boolean;
   ResourceId: number;
-  StaffColor: string;
-  SecondStaffColor: string;
   StartTime: Date;
   Subject: string;
   GuestInfo: GuestInfoType;
   BookingInfo?: BookingInfoType;
+  Break: boolean;
   elementType: string;
 }
 
 export type CalendarStaffMembers = {
   text: string;
   id: number;
-  color: string[] | undefined;
-  image: string;
+  schedule: {
+    [date: string]: string[];
+  };
 };

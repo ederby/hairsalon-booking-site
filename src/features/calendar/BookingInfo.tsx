@@ -5,6 +5,7 @@ import { useBookingHistory } from "@/context/BookingHistoryContext";
 import { useStaff } from "@/hooks/useStaff";
 import { BookingType } from "@/services/types";
 import { format } from "date-fns";
+import { sv } from "date-fns/locale";
 import { BadgeCheck, BadgeMinus, BadgeX, CalendarPlus } from "lucide-react";
 
 type BookingInfoProps = {
@@ -17,7 +18,11 @@ export default function BookingInfo({
   const { setCurrentBookingID } = useBookingHistory();
   const { staff, fetchingStaff } = useStaff();
   const currentStaff = staff?.find((s) => s.id === booking?.staff_id);
-  const outdated = new Date(booking?.selectedDate ?? new Date()) < new Date();
+  const outdated =
+    (booking?.selectedDate &&
+      booking.selectedDate < format(new Date(), "yyyy-MM-dd")) ||
+    (booking?.selectedDate &&
+      booking.selectedDate !== format(new Date(), "yyyy-MM-dd"));
 
   if (fetchingStaff) return <Spinner />;
 
@@ -70,7 +75,11 @@ export default function BookingInfo({
         )}
         <div className="flex justify-between text-sm">
           <h4 className="text-zinc-400">Skapad</h4>
-          <h4>{format(booking?.created_at ?? new Date(), "yy-MM-dd")}</h4>
+          <h4>
+            {format(booking?.created_at ?? new Date(), "d MMMM yyyy", {
+              locale: sv,
+            })}
+          </h4>
         </div>
         <div className="flex justify-between text-sm">
           <h4 className="text-zinc-400">Personal</h4>
@@ -81,7 +90,11 @@ export default function BookingInfo({
       <Card className="p-4 mt-4 flex flex-col gap-2.5">
         <div className="flex justify-between text-sm">
           <h4 className="text-zinc-400">Datum</h4>
-          <h4>{format(booking?.selectedDate ?? new Date(), "yy-MM-dd")}</h4>
+          <h4>
+            {format(booking?.selectedDate ?? new Date(), "d MMMM yyyy", {
+              locale: sv,
+            })}
+          </h4>
         </div>
         <div className="flex justify-between text-sm">
           <h4 className="text-zinc-400">Tid</h4>

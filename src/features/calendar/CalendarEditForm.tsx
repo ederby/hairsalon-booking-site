@@ -3,6 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { DialogClose } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   FormControl,
   FormField,
   FormItem,
@@ -26,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { useCalendar } from "@/context/CalendarContext";
 import { useStaff } from "@/hooks/useStaff";
 import {
   formatCustomDate,
@@ -35,13 +42,9 @@ import {
   reduceExtraServicesDuration,
 } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
-import {
-  BookingType,
-  ExtraservicesType,
-  GuestInfoType,
-  StaffType,
-} from "@/services/types";
+import { BookingType, GuestInfoType } from "@/services/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format, startOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import {
   CalendarIcon,
@@ -58,43 +61,11 @@ import { useExtraServices } from "../services/useExtraServices";
 import { useCreateBooking } from "./useCreateBooking";
 import { useEditBooking } from "./useEditBooking";
 import { useServices } from "./useServices";
-import { format, startOfDay } from "date-fns";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 type CalendarEditFormProps = {
-  currentStaffMember: StaffType | undefined;
-  setOpenDialog: (value: boolean) => void;
-  bookingInfo: {
-    id: number;
-    serviceID: number;
-    extraServices: ExtraservicesType[] | [];
-    time: { startTime: string; endTime: string };
-    subject: string;
-    resourceID: number;
-    guestInfo: GuestInfoType;
-    date: Date;
-  };
   bookAgain?: boolean;
 };
-
-type OnSubmitType = {
-  date: Date;
-  email: string;
-  endTime: string;
-  extraservices?: number[] | undefined;
-  name: string;
-  phone: string;
-  observations?: string;
-  service: string;
-  staff: string;
-  startTime: string;
-  id?: number;
-};
+type OnSubmitType = z.infer<typeof formSchema>;
 
 const formSchema = z.object({
   service: z.string().nonempty("Titel är obligatorisk"),
@@ -113,22 +84,25 @@ const formSchema = z.object({
 });
 
 export default function CalendarEditForm({
-  currentStaffMember,
-  setOpenDialog,
-  bookingInfo,
   bookAgain = false,
 }: CalendarEditFormProps): JSX.Element {
+  const {
+    selectedStaff,
+    setSelectedStaff,
+    currentBookingInfo,
+    currentStaffMember,
+  } = useCalendar();
+  const bookingInfo = currentBookingInfo.current;
+
   const { services, isLoadingServices } = useServices();
   const { categories, isLoadingCategories } = useCategories();
   const { staff, fetchingStaff } = useStaff();
   const { extraServices, isLoadingExtraServices } = useExtraServices();
   const { onEditBooking, isEditingBooking } = useEditBooking();
+  const [availableDates, setAvailableDates] = useState<Date[]>([]);
 
   const [selectedExtraServices, setSelectedExtraServices] = useState<number[]>(
     bookingInfo?.extraServices?.map((extraService) => extraService.id) || []
-  );
-  const [selectedStaff, setSelectedStaff] = useState<number | null>(
-    currentStaffMember?.id ?? null
   );
   const extraServicesDuration = reduceExtraServicesDuration(
     extraServices?.filter((service) =>
@@ -147,8 +121,8 @@ export default function CalendarEditForm({
       : [],
     staff: currentStaffMember?.id.toString() || "",
     date: bookingInfo ? new Date(bookingInfo.date) : new Date(),
-    startTime: bookingInfo.time.startTime,
-    endTime: bookingInfo.time.endTime,
+    startTime: bookingInfo.startTime,
+    endTime: bookingInfo.endTime,
     name: bookingInfo ? bookingInfo.guestInfo.name : "",
     email: bookingInfo ? bookingInfo.guestInfo.email : "",
     phone: bookingInfo ? bookingInfo.guestInfo.phone : "",
@@ -162,9 +136,13 @@ export default function CalendarEditForm({
     mode: "onChange",
   });
 
-  const staffSchedule: Record<string, string[]> =
-    staff?.find((staffMember) => staffMember.id === selectedStaff)?.schedule ||
-    {};
+  const serviceWatch = Number(form.watch("service"));
+  const startTimeWatch = form.watch("startTime");
+  const staffWatch = form.watch("staff");
+
+  const totalDuration =
+    extraServicesDuration +
+    (services?.find((services) => services.id === serviceWatch)?.duration || 0);
 
   function onSubmit(data: OnSubmitType) {
     const newService = services?.find(
@@ -185,18 +163,20 @@ export default function CalendarEditForm({
       phone: data.phone,
       observations: data.observations,
     };
-    const currentBooking: Omit<BookingType, "id" | "created_at" | "canceled"> =
-      {
-        category: newCategory,
-        service: newService,
-        extraServices: newExtraServices || [],
-        staff_id: newStaff,
-        selectedDate: newDate,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        duration: newDuration,
-        guestInfo: newGuestInfo,
-      };
+    const currentBooking: Omit<
+      BookingType,
+      "id" | "created_at" | "canceled" | "break"
+    > = {
+      category: newCategory,
+      service: newService,
+      extraServices: newExtraServices || [],
+      staff_id: newStaff,
+      selectedDate: newDate,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      duration: newDuration,
+      guestInfo: newGuestInfo,
+    };
 
     if (data.id === 0) onCreateBooking({ booking: currentBooking });
     if (data.id !== 0)
@@ -226,12 +206,6 @@ export default function CalendarEditForm({
     });
   }, [selectedExtraServices, form]);
 
-  const serviceWatch = Number(form.watch("service"));
-  const startTimeWatch = form.watch("startTime");
-  const totalDuration =
-    extraServicesDuration +
-    (services?.find((services) => services.id === serviceWatch)?.duration || 0);
-
   useEffect(() => {
     if (serviceWatch) {
       form.setValue(
@@ -243,6 +217,42 @@ export default function CalendarEditForm({
 
   const { isValid } = form.formState;
 
+  // Set the date to the first available date for the selected staff when changing staff member
+  useEffect(() => {
+    if (selectedStaff !== null) {
+      const staffMember = staff?.find(
+        (staffMember) => staffMember.id === selectedStaff
+      );
+      if (staffMember) {
+        const dates = Object.keys(staffMember.schedule)
+          .map((date) => new Date(date))
+          .filter((date) => date >= startOfDay(new Date()))
+          .sort((a, b) => a.getTime() - b.getTime());
+
+        setAvailableDates(dates);
+      }
+    }
+  }, [selectedStaff, staff]);
+
+  function handleStaffChange(newStaffId: number) {
+    const staffMember = staff?.find(
+      (staffMember) => staffMember.id === newStaffId
+    );
+    if (staffMember) {
+      const dates = Object.keys(staffMember.schedule)
+        .map((date) => new Date(date))
+        .filter((date) => date >= startOfDay(new Date()))
+        .sort((a, b) => a.getTime() - b.getTime());
+      setAvailableDates(dates);
+      const matchingDate = dates.find(
+        (date) =>
+          format(new Date(date), "yy-MM-dd") ===
+          format(new Date(bookingInfo.date), "yy-MM-dd")
+      );
+      form.setValue("date", startOfDay(matchingDate || dates[0]));
+    }
+  }
+
   if (
     isLoadingServices ||
     isLoadingCategories ||
@@ -251,10 +261,6 @@ export default function CalendarEditForm({
   ) {
     return <Spinner />;
   }
-
-  const availableDates = Object.keys(staffSchedule).map(
-    (date) => new Date(date)
-  );
 
   return (
     <FormProvider {...form}>
@@ -299,40 +305,6 @@ export default function CalendarEditForm({
                             </SelectItem>
                           ))}
                       </SelectGroup>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="staff"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Personal</FormLabel>
-              <FormControl>
-                <Select
-                  value={selectedStaff?.toString()}
-                  onValueChange={(e) => {
-                    setSelectedStaff(+e);
-                    field.onChange(e);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Välj en person" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {staff?.map((staffMember) => (
-                      <SelectItem
-                        key={staffMember.id}
-                        value={staffMember.id.toString()}
-                      >
-                        <span>{staffMember.name}</span>
-                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -430,8 +402,10 @@ export default function CalendarEditForm({
                 <Select
                   value={selectedStaff?.toString()}
                   onValueChange={(e) => {
-                    setSelectedStaff(+e);
+                    const newStaffId = +e;
+                    setSelectedStaff(newStaffId);
                     field.onChange(e);
+                    handleStaffChange(newStaffId);
                   }}
                 >
                   <SelectTrigger>
@@ -464,6 +438,7 @@ export default function CalendarEditForm({
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
+                      disabled={staffWatch === ""}
                       variant={"outline"}
                       className={cn(
                         "justify-start text-left font-normal h-9",
@@ -495,13 +470,18 @@ export default function CalendarEditForm({
                               availableDate.toISOString().split("T").at(0)
                           ),
                       }}
-                      disabled={(date) =>
-                        date < new Date() ||
-                        !availableDates.some(
-                          (availableDate) =>
-                            availableDate.toDateString() === date.toDateString()
-                        )
-                      }
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return (
+                          date < today ||
+                          !availableDates.some(
+                            (availableDate) =>
+                              availableDate.toDateString() ===
+                              date.toDateString()
+                          )
+                        );
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -749,13 +729,11 @@ export default function CalendarEditForm({
           />
         </div>
         <div className="w-full flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setOpenDialog(false)}
-          >
-            Stäng
-          </Button>
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              Stäng
+            </Button>
+          </DialogClose>
           <DialogClose asChild>
             <Button
               type="submit"

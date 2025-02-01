@@ -22,13 +22,13 @@ export type FormattedBookingType = {
 };
 
 export function bookingHistoryColumns(
-  setOpenDialog: (open: boolean) => void,
   setCurrentBookingID: (id: number, bookAgain: boolean) => void,
+  setOpenDialog: (open: boolean) => void,
   currentSorted: string | null,
   setCurrentSorted: (
     sorted: "date" | "service" | "status" | "customerName"
   ) => void,
-  setOpenAlertDialog: () => void
+  setOpenAlertDialog: (open: boolean) => void
 ): ColumnDef<FormattedBookingType>[] {
   return [
     {
@@ -189,7 +189,7 @@ export function bookingHistoryColumns(
             <DropdownMenuItem
               onSelect={() => {
                 setCurrentBookingID(row.original.id, false);
-                setOpenAlertDialog();
+                setOpenAlertDialog(true);
               }}
             >
               <CircleX strokeWidth={1.5} />

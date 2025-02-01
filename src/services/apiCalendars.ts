@@ -1,5 +1,14 @@
 import { supabase } from "./supabase";
-import { BookingType, ServicesType } from "./types";
+import { BookingType, BreakType, ServicesType } from "./types";
+
+type EditNewBookingType = {
+  booking: Omit<BookingType, "id" | "created_at" | "canceled" | "break">;
+  id: number;
+};
+type EditNewBreakType = {
+  breakBooking: BreakType;
+  id: number;
+};
 
 export async function getActiveBookings(): Promise<BookingType[]> {
   const today = new Date().toISOString().split("T")[0];
@@ -40,10 +49,6 @@ export async function getServices(): Promise<ServicesType[]> {
   return data;
 }
 
-type EditNewBookingType = {
-  booking: Omit<BookingType, "id" | "created_at" | "canceled">;
-  id: number;
-};
 export async function editBooking({
   booking,
   id,
@@ -61,10 +66,10 @@ export async function editBooking({
 
 export async function createBooking({
   booking,
-}: Omit<EditNewBookingType, "id" | "canceled">): Promise<void> {
+}: Omit<EditNewBookingType, "id" | "canceled" | "break">): Promise<void> {
   const { error } = await supabase
     .from("bookings")
-    .insert([{ ...booking, canceled: false }]);
+    .insert([{ ...booking, canceled: false, break: false }]);
 
   if (error) {
     console.error("Bokningen kunde inte skapas.");
@@ -92,5 +97,61 @@ export async function cancelBooking(id: number): Promise<void> {
   if (error) {
     console.error("Bokningen kunde inte avbokas.");
     throw new Error("Bokningen kunde inte avbokas.");
+  }
+}
+
+export async function createBreak(breakBooking: BreakType): Promise<void> {
+  const newBreak = {
+    duration: breakBooking.duration,
+    startTime: breakBooking.startTime,
+    endTime: breakBooking.endTime,
+    staff_id: breakBooking.staff_id,
+    service: { title: breakBooking.service },
+    selectedDate: breakBooking.selectedDate,
+    category: {},
+    extraServices: [],
+    guestInfo: {
+      name: breakBooking.notes,
+      email: "",
+      phone: "",
+      observation: "",
+    },
+    canceled: false,
+    break: true,
+  };
+  const { error } = await supabase.from("bookings").insert([
+    {
+      ...newBreak,
+    },
+  ]);
+
+  if (error) {
+    console.error("Bokningen kunde inte skapas.");
+    throw new Error("Bokningen kunde inte skapas.");
+  }
+}
+
+export async function editBreak({
+  breakBooking,
+  id,
+}: EditNewBreakType): Promise<void> {
+  const editedBreak = {
+    duration: breakBooking.duration,
+    endTime: breakBooking.endTime,
+    guestInfo: { name: breakBooking.notes },
+    selectedDate: breakBooking.selectedDate,
+    service: { title: breakBooking.service },
+    staff_id: breakBooking.staff_id,
+    startTime: breakBooking.startTime,
+  };
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({ ...editedBreak })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Bokningen kunde inte uppdateras.");
+    throw new Error("Bokningen kunde inte uppdateras.");
   }
 }

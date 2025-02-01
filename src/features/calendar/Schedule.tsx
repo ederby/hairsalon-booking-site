@@ -7,13 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useStaff } from "@/hooks/useStaff";
-import {
-  CalendarStaffMembers,
-  EventTemplate,
-  ExtraservicesType,
-  GuestInfoType,
-} from "@/services/types";
+import { useCalendar } from "@/context/CalendarContext";
+import { EventTemplate, FilteredAppointments } from "@/services/types";
 import {
   L10n,
   loadCldr,
@@ -29,151 +24,57 @@ import {
   Day,
   Inject,
   Month,
+  PopupOpenEventArgs,
   ScheduleComponent,
   ToolbarItemDirective,
   ToolbarItemsDirective,
   ViewDirective,
   ViewsDirective,
+  Week,
   WorkWeek,
 } from "@syncfusion/ej2-react-schedule";
-import { format, parseISO } from "date-fns";
-import { sv } from "date-fns/locale";
-import { useEffect, useRef, useState } from "react";
-import BookingPersonelDropdown from "./BookingPersonelDropdown";
+import { format } from "date-fns";
+import { useEffect, useRef } from "react";
+import BookingPersonelDropdown from "./BookingStaffDropdown";
+import CalendarBreakAppointment from "./CalendarBreakAppointment";
 import CalendarEditForm from "./CalendarEditForm";
 import SchedulerContent from "./SchedulerContent";
 import SchedulerFooter from "./SchedulerFooter";
 import SchedulerHeader from "./SchedulerHeader";
-import { useActiveBookings } from "./useActiveBookings";
 import { useCancelBooking } from "./useCancelBooking";
 
 loadCldr(svNumbers, svCalendars, svTimeZoneNames);
 setCulture("sv");
 setCurrencyCode("SEK");
-L10n.load(sv);
+L10n.load({
+  sv: {
+    schedule: {
+      day: "Dag",
+      week: "Vecka",
+      workWeek: "Arbetsvecka",
+      month: "Månad",
+      agenda: "Agenda",
+    },
+  },
+});
 const syncfusionKey = import.meta.env.VITE_SYNCFUSION_KEY;
 registerLicense(syncfusionKey);
-const staffColours = [
-  ["#D7ECFF", "#1F5ABB"],
-  ["#FDF0C2", "#DEAC29"],
-  ["#D7FFE0", "#42AB57"],
-  ["#FCE7E8", "#A83735"],
-];
 
-interface CalendarEvent {
-  Id: number;
-  Subject: string;
-  StartTime: Date;
-  EndTime: Date;
-  IsAllDay: boolean;
-  ResourceId: number;
-  StaffColor?: string;
-}
-
-type CurrentBookingInfoType = {
-  resourceID: number;
-  subject: string;
-  guestInfo: GuestInfoType;
-  time: { startTime: string; endTime: string };
-  extraServices: ExtraservicesType[] | [];
-  id: number;
-  serviceID: number;
-  date: Date;
-};
-
-const CurrentBookingInfoInitialState = {
-  resourceID: 0,
-  subject: "",
-  guestInfo: {
-    email: "",
-    name: "",
-    observations: "",
-    phone: "",
-  },
-  time: {
-    startTime: "",
-    endTime: "",
-  },
-  extraServices: [],
-  id: 0,
-  serviceID: 0,
-  date: new Date(),
-};
-
-export default function Calendar(): JSX.Element {
-  const { staff, fetchingStaff } = useStaff();
-  const { activeBookings, isLoadingactiveBookings } = useActiveBookings();
-  const isFirstRender = useRef(true);
+export default function Schedule(): JSX.Element {
+  const scheduleRef = useRef<ScheduleComponent>(null);
   const { onCancelBooking } = useCancelBooking();
-  const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [selectedStaff, setSelectedStaff] = useState<number[]>([]);
-
-  const currentBookingInfo = useRef<CurrentBookingInfoType>(
-    CurrentBookingInfoInitialState
-  );
-
-  const currentStaffMember = staff?.find(
-    (member) => member.id === currentBookingInfo.current.resourceID
-  );
-
-  // Transform staff to fit the scheduler
-  const staffMembers: CalendarStaffMembers[] | undefined = staff?.map(
-    (person, i) => {
-      return {
-        text: person.name,
-        id: person.id,
-        color: staffColours.at(i),
-        image: person.image,
-      };
-    }
-  );
-
-  // Transform bookings to fit the scheduler
-  const transformedBookings = activeBookings?.map((booking, index) => {
-    const startDateTime = parseISO(
-      `${booking.selectedDate}T${booking.startTime}:00`
-    );
-
-    const endDateTime = new Date(startDateTime);
-    endDateTime.setMinutes(endDateTime.getMinutes() + booking.duration);
-
-    const staffMember = staffMembers?.find((s) => s.id === booking.staff_id);
-
-    return {
-      Id: index + 1,
-      Subject: booking.service?.title,
-      StartTime: startDateTime.toISOString(),
-      EndTime: endDateTime.toISOString(),
-      IsAllDay: false,
-      ResourceId: booking.staff_id,
-      StaffColor: staffMember?.color?.at(0),
-      SecondStaffColor: staffMember?.color?.at(1),
-      GuestInfo: booking.guestInfo,
-      BookingInfo: {
-        price: booking.service?.price,
-        id: booking.id,
-        serviceID: booking.service?.id,
-        createdAt: booking.created_at,
-        extraServices: booking.extraServices,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        duration: booking.duration,
-      },
-    };
-  });
-
-  const filteredAppointments = transformedBookings?.filter((appointment) =>
-    selectedStaff?.includes(appointment.ResourceId)
-  );
-
-  // Set default selected staff
-  useEffect(() => {
-    if (isFirstRender.current && staffMembers && staffMembers.length > 0) {
-      setSelectedStaff([staffMembers[2].id]);
-      isFirstRender.current = false;
-    }
-  }, [staffMembers]);
+  const {
+    filteredAppointments,
+    currentBookingInfo,
+    currentBookingInfoInitialState,
+    fetchingStaff,
+    isLoadingactiveBookings,
+    openDialog,
+    setOpenDialog,
+    openAlertDialog,
+    setOpenAlertDialog,
+    setOpenBreakDialog,
+  } = useCalendar();
 
   function eventTemplate(props: EventTemplate) {
     const formattedTime = `${format(
@@ -183,10 +84,9 @@ export default function Calendar(): JSX.Element {
 
     return (
       <div
-        className="p-1 py-2 whitespace-normal text-zinc-500"
-        style={{
-          color: props.SecondStaffColor,
-        }}
+        className={`p-1 py-2 whitespace-normal ${
+          props.Break ? "text-zinc-600" : "text-teal-600"
+        }`}
       >
         <h4 className="font-semibold">{props.Subject}</h4>
         <p className="mt-1">{props.GuestInfo.name}</p>
@@ -202,30 +102,27 @@ export default function Calendar(): JSX.Element {
 
   function onEventRendered(args: {
     element: HTMLElement;
-    data: CalendarEvent;
+    data: FilteredAppointments;
   }) {
-    const { StaffColor } = args.data;
-    if (StaffColor) {
-      args.element.style.backgroundColor = StaffColor;
-      args.element.style.borderColor = StaffColor;
-    }
+    args.element.style.backgroundColor = args.data.Break
+      ? "#d4d4d8"
+      : "#CCFBF1";
+    args.element.style.borderColor = args.data.Break ? "#d4d4d8" : "#CCFBF1";
   }
 
   function handleDialogClose(isOpen: boolean) {
     if (!isOpen) {
-      currentBookingInfo.current = CurrentBookingInfoInitialState;
+      currentBookingInfo.current = currentBookingInfoInitialState;
     }
     setOpenDialog(isOpen);
   }
-
-  const scheduleRef = useRef<ScheduleComponent>(null);
 
   function QuickInfoHeaderTemplate(props: EventTemplate) {
     if (props.elementType === "cell") return null;
 
     return (
       <SchedulerHeader
-        color={{ primary: props.StaffColor, secondary: props.SecondStaffColor }}
+        breakBooking={props.Break}
         createdDate={props.BookingInfo?.createdAt as string}
         closePopup={() => scheduleRef.current?.closeQuickInfoPopup()}
       />
@@ -239,12 +136,11 @@ export default function Calendar(): JSX.Element {
       resourceID: props.ResourceId,
       subject: props.Subject,
       guestInfo: props.GuestInfo,
-      time: {
-        startTime: props.StartTime.toString(),
-        endTime: props.EndTime.toString(),
-      },
+      startTime: props.StartTime.toString(),
+      endTime: props.EndTime.toString(),
       extraServices: props.BookingInfo?.extraServices || [],
       price: props.BookingInfo?.price || 0,
+      breakBooking: props.Break,
     };
 
     return <SchedulerContent bookingInfo={bookingInfo} />;
@@ -255,20 +151,18 @@ export default function Calendar(): JSX.Element {
     const bookingInfo = {
       resourceID: props.ResourceId || 0,
       subject: props.Subject || "",
+      startTime: format(props.StartTime, "HH:mm"),
+      endTime: format(props.EndTime, "HH:mm"),
+      extraServices: props.BookingInfo?.extraServices || [],
+      id: props.BookingInfo?.id || 0,
+      serviceID: props.BookingInfo?.serviceID || 0,
+      date: new Date(props.StartTime),
       guestInfo: props.GuestInfo || {
         email: "",
         name: "",
         observations: "",
         phone: "",
       },
-      time: {
-        startTime: format(props.StartTime, "HH:mm"),
-        endTime: format(props.EndTime, "HH:mm"),
-      },
-      extraServices: props.BookingInfo?.extraServices || [],
-      id: props.BookingInfo?.id || 0,
-      serviceID: props.BookingInfo?.serviceID || 0,
-      date: new Date(props.StartTime),
     };
 
     useEffect(() => {
@@ -277,24 +171,31 @@ export default function Calendar(): JSX.Element {
 
     if (props.elementType === "cell") return null;
 
+    console.log(props.Break);
+
     return (
       <SchedulerFooter
         closePopup={() => scheduleRef.current?.closeQuickInfoPopup()}
         setOpenAlertDialog={setOpenAlertDialog}
-        setOpenDialog={setOpenDialog}
+        setOpenDialog={props.Break ? setOpenBreakDialog : setOpenDialog}
       />
     );
   }
 
+  // Prevent creating new events on double click
+  function onPopupOpen(args: PopupOpenEventArgs) {
+    if (args.type === "Editor") {
+      args.cancel = true;
+    }
+  }
+
   if (fetchingStaff || isLoadingactiveBookings) return <Spinner />;
+
   return (
     <>
       <div className="flex justify-between mb-2">
-        <BookingPersonelDropdown
-          selectedStaff={selectedStaff}
-          setSelectedStaff={setSelectedStaff}
-          staffMembers={staffMembers}
-        />
+        <BookingPersonelDropdown />
+        <CalendarBreakAppointment />
       </div>
 
       <ScheduleComponent
@@ -306,6 +207,7 @@ export default function Calendar(): JSX.Element {
         eventSettings={eventSettings}
         eventRendered={onEventRendered}
         workDays={[1, 2, 3, 4, 5, 6]}
+        popupOpen={onPopupOpen}
         currentView="WorkWeek"
         quickInfoTemplates={{
           header: QuickInfoHeaderTemplate,
@@ -314,11 +216,9 @@ export default function Calendar(): JSX.Element {
         }}
         cellClick={(args) => {
           currentBookingInfo.current = {
-            ...CurrentBookingInfoInitialState,
-            time: {
-              startTime: format(args.startTime, "HH:mm"),
-              endTime: format(args.endTime, "HH:mm"),
-            },
+            ...currentBookingInfoInitialState,
+            startTime: format(args.startTime, "HH:mm"),
+            endTime: format(args.endTime, "HH:mm"),
             date: args.startTime,
           };
           setOpenDialog(true);
@@ -326,11 +226,14 @@ export default function Calendar(): JSX.Element {
       >
         <ViewsDirective>
           <ViewDirective option="Day" />
+          <ViewDirective option="Week" />
           <ViewDirective option="WorkWeek" />
           <ViewDirective option="Month" />
           <ViewDirective option="Agenda" />
         </ViewsDirective>
-        <Inject services={[WorkWeek, Day, Month, Agenda]} />
+
+        <Inject services={[WorkWeek, Week, Day, Month, Agenda]} />
+
         <ToolbarItemsDirective>
           <ToolbarItemDirective
             name="Previous"
@@ -356,11 +259,7 @@ export default function Calendar(): JSX.Element {
             </DialogTitle>
             <DialogDescription className="hidden"></DialogDescription>
           </DialogHeader>
-          <CalendarEditForm
-            bookingInfo={currentBookingInfo.current}
-            currentStaffMember={currentStaffMember}
-            setOpenDialog={setOpenDialog}
-          />
+          <CalendarEditForm />
         </DialogContent>
       </Dialog>
 

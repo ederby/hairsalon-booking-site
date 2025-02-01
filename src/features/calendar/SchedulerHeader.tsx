@@ -3,13 +3,13 @@ import { sv } from "date-fns/locale";
 import { X } from "lucide-react";
 
 type SchedulerHeaderProps = {
-  color: { primary: string; secondary: string };
+  breakBooking: boolean;
   createdDate: string;
   closePopup: () => void;
 };
 
 export default function SchedulerHeader({
-  color,
+  breakBooking,
   createdDate,
   closePopup,
 }: SchedulerHeaderProps): JSX.Element {
@@ -23,16 +23,16 @@ export default function SchedulerHeader({
 
   return (
     <div
-      className="py-2 px-4 flex justify-between items-center"
-      style={{ backgroundColor: color.primary }}
+      className={`py-2 px-4 flex justify-between items-center ${
+        breakBooking ? "bg-zinc-600" : "bg-teal-600"
+      }`}
     >
-      <span className="font-semibold" style={{ color: color.secondary }}>
-        Bokad {formattedCreatedDate}
+      <span className="font-semibold text-teal-50">
+        {breakBooking ? "Skapad" : "Bokad"} {formattedCreatedDate}
       </span>
       <X
         size={16}
-        color={color.secondary}
-        className="cursor-pointer"
+        className="cursor-pointer text-teal-50"
         onClick={closePopup}
       />
     </div>

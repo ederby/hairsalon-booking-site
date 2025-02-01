@@ -2,27 +2,27 @@ import { createContext, ReactNode, useContext, useReducer } from "react";
 
 type BookingHistoryContextType =
   | (StateType & {
-      setOpenDialog: () => void;
+      // setOpenDialog: () => void;
       setCurrentBookingID: (id: number, bookAgain: boolean) => void;
       setCurrentSorted: (
         sorted: "date" | "service" | "status" | "customerName"
       ) => void;
-      setOpenAlertDialog: () => void;
+      // setOpenAlertDialog: () => void;
     })
   | undefined;
 
 type StateType = {
-  openDialog: boolean;
+  // openDialog: boolean;
   currentBookingID: number | null;
   currentSorted: string | null;
   bookAgain: boolean;
-  openAlertDialog: boolean;
+  // openAlertDialog: boolean;
 };
 
 type ActionType =
-  | {
-      type: "SET_BOOKING";
-    }
+  // | {
+  //     type: "SET_BOOKING";
+  //   }
   | {
       type: "SET_BOOKINGID";
       payload: {
@@ -33,10 +33,10 @@ type ActionType =
   | {
       type: "SET_SORTED";
       payload: "date" | "service" | "status" | "customerName";
-    }
-  | {
-      type: "SET_DELTE_BOOKING";
     };
+// | {
+//     type: "SET_DELTE_BOOKING";
+//   };
 
 type BookingHistoryProviderProps = {
   children: ReactNode;
@@ -55,8 +55,8 @@ const initialState = {
 
 function reducer(state: StateType, action: ActionType) {
   switch (action.type) {
-    case "SET_BOOKING":
-      return { ...state, openDialog: !state.openDialog };
+    // case "SET_BOOKING":
+    //   return { ...state, openDialog: !state.openDialog };
     case "SET_BOOKINGID":
       return {
         ...state,
@@ -65,8 +65,8 @@ function reducer(state: StateType, action: ActionType) {
       };
     case "SET_SORTED":
       return { ...state, currentSorted: action.payload };
-    case "SET_DELTE_BOOKING":
-      return { ...state, openAlertDialog: !state.openAlertDialog };
+    // case "SET_DELTE_BOOKING":
+    //   return { ...state, openAlertDialog: !state.openAlertDialog };
     default:
       return state;
   }
@@ -75,14 +75,14 @@ function reducer(state: StateType, action: ActionType) {
 export default function BookingHistoryProvider({
   children,
 }: BookingHistoryProviderProps) {
-  const [
-    { openDialog, currentBookingID, currentSorted, bookAgain, openAlertDialog },
-    dispatch,
-  ] = useReducer(reducer, initialState);
+  const [{ currentBookingID, currentSorted, bookAgain }, dispatch] = useReducer(
+    reducer,
+    initialState
+  );
 
-  function setOpenDialog() {
-    dispatch({ type: "SET_BOOKING" });
-  }
+  // function setOpenDialog() {
+  //   dispatch({ type: "SET_BOOKING" });
+  // }
   function setCurrentBookingID(id: number, bookAgain: boolean) {
     dispatch({ type: "SET_BOOKINGID", payload: { id, bookAgain } });
   }
@@ -91,22 +91,22 @@ export default function BookingHistoryProvider({
   ) {
     dispatch({ type: "SET_SORTED", payload: sorted });
   }
-  function setOpenAlertDialog() {
-    dispatch({ type: "SET_DELTE_BOOKING" });
-  }
+  // function setOpenAlertDialog() {
+  //   dispatch({ type: "SET_DELTE_BOOKING" });
+  // }
 
   return (
     <BookingHistoryContext.Provider
       value={{
         bookAgain,
-        openDialog,
-        setOpenDialog,
+        // openDialog,
+        // setOpenDialog,
         currentBookingID,
         setCurrentBookingID,
         currentSorted,
         setCurrentSorted,
-        openAlertDialog,
-        setOpenAlertDialog,
+        // openAlertDialog,
+        // setOpenAlertDialog,
       }}
     >
       {children}

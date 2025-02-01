@@ -12,10 +12,10 @@ import {
 type CategoryDeleteAlertProps = {
   title: string;
   description: string;
-  open: boolean;
+  open: boolean | undefined;
   actionText: string;
-  setOpen?: (open: boolean) => void;
-  onClick?: () => void;
+  setOpen: (open: boolean) => void;
+  onClick: () => void;
 };
 
 export default function AlertDialogCustom({
