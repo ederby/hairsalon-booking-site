@@ -14,6 +14,7 @@ import { z } from "zod";
 import CustomCalendar from "./CustomCalendar";
 import CustomStaffSelect from "./CustomStaffSelect";
 import { useCreateWorkday } from "./useCreateWorkday";
+import { toast } from "@/hooks/use-toast";
 
 type OnSubmitType = z.infer<typeof formSchema>;
 
@@ -27,7 +28,7 @@ const formSchema = z.object({
 export function AddWorkingDayForm(): JSX.Element {
   const { fetchingStaff } = useStaff();
   const { onCreateWorkday, isCreatingWorkday } = useCreateWorkday();
-  const { currentStaffMember } = useCalendar();
+  const { currentStaffMember, filteredEvents } = useCalendar();
   const initialValues = {
     staff: currentStaffMember?.id.toString() || "",
     date: new Date(),
@@ -40,6 +41,15 @@ export function AddWorkingDayForm(): JSX.Element {
   });
 
   function onSubmit(data: OnSubmitType) {
+    const workdayAlreadyExists = filteredEvents.some((event) => {
+      return (
+        format(new Date(event.StartTime), "yyyy-MM-dd") ===
+          format(data.date, "yyyy-MM-dd") &&
+        event.Subject === "Start av dagen" &&
+        event.ResourceId === +data.staff
+      );
+    });
+
     const workday = {
       date: format(data.date, "yyyy-MM-dd"),
       staffID: +data.staff,
@@ -47,7 +57,15 @@ export function AddWorkingDayForm(): JSX.Element {
       endTime: data.endTime,
     };
 
-    onCreateWorkday(workday);
+    if (workdayAlreadyExists) {
+      toast({
+        title: "Obs!",
+        description: "Arbetsdagen är redan tillagd",
+        onSuccess: false,
+      });
+    } else {
+      onCreateWorkday(workday);
+    }
   }
 
   if (fetchingStaff) return <Spinner />;

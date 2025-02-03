@@ -166,6 +166,8 @@ export default function BookingHistoryDataTable(): JSX.Element {
       columnFilters,
     },
   });
+  const { rowsById } = table.getRowModel();
+  const totalResults = Object.keys(rowsById).length;
 
   if (fetchingStaff || isLoadingBookings) return <Spinner />;
 
@@ -262,30 +264,46 @@ export default function BookingHistoryDataTable(): JSX.Element {
         </Table>
       </div>
 
-      {table.getPageCount() > 1 && (
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft strokeWidth={1.5} />
-          </Button>
+      <div className="flex justify-between items-center py-4">
+        {totalResults > 0 && (
           <span className="text-sm">
-            Sida {table.getState().pagination.pageIndex + 1} av{" "}
-            {table.getPageCount()}
+            {table.getState().pagination.pageIndex *
+              table.getState().pagination.pageSize +
+              1}
+            -
+            {Math.min(
+              (table.getState().pagination.pageIndex + 1) *
+                table.getState().pagination.pageSize,
+              totalResults
+            )}{" "}
+            av {totalResults}
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight strokeWidth={1.5} />
-          </Button>
-        </div>
-      )}
+        )}
+        {table.getPageCount() > 1 && (
+          <div className="flex items-center justify-end space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronLeft strokeWidth={1.5} />
+            </Button>
+            <span className="text-sm">
+              Sida {table.getState().pagination.pageIndex + 1} av{" "}
+              {table.getPageCount()}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              <ChevronRight strokeWidth={1.5} />
+            </Button>
+          </div>
+        )}
+      </div>
 
       <Dialog open={openAlertDialog} onOpenChange={setOpenAlertDialog}>
         <DialogContent className="overflow-y-auto max-h-full">
