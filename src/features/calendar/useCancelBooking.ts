@@ -9,8 +9,7 @@ export function useCancelBooking() {
     useMutation({
       mutationFn: cancelBooking,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["activebookings"] });
-        queryClient.invalidateQueries({ queryKey: ["allbookings"] });
+        queryClient.invalidateQueries({ queryKey: ["bookings"] });
         toast({
           title: "Hurra!",
           description: "Bokningen har avbokats",

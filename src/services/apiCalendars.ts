@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { BookingType, BreakType, ServicesType } from "./types";
+import { BookingType, BreakType, ServicesType, WorkdayType } from "./types";
 
 type EditNewBookingType = {
   booking: Omit<BookingType, "id" | "created_at" | "canceled" | "break">;
@@ -9,22 +9,6 @@ type EditNewBreakType = {
   breakBooking: BreakType;
   id: number;
 };
-
-export async function getActiveBookings(): Promise<BookingType[]> {
-  const today = new Date().toISOString().split("T")[0];
-  const { data, error } = await supabase
-    .from("bookings")
-    .select("*")
-    .eq("canceled", false)
-    .gte("selectedDate", today);
-
-  if (error) {
-    console.error("Bokningarna kunde inte hämtas.");
-    throw new Error("Bokningarna kunde inte hämtas.");
-  }
-
-  return data;
-}
 
 export async function deleteBooking(id: number): Promise<void> {
   const { error } = await supabase.from("bookings").delete().eq("id", id);
@@ -77,7 +61,7 @@ export async function createBooking({
   }
 }
 
-export async function getAllBookings(): Promise<BookingType[]> {
+export async function getBookings(): Promise<BookingType[]> {
   const { data, error } = await supabase.from("bookings").select("*");
 
   if (error) {
@@ -153,5 +137,46 @@ export async function editBreak({
   if (error) {
     console.error("Bokningen kunde inte uppdateras.");
     throw new Error("Bokningen kunde inte uppdateras.");
+  }
+}
+
+export async function createWorkday(
+  workday: Omit<WorkdayType, "id">
+): Promise<void> {
+  const { error } = await supabase.from("workdays").insert([{ ...workday }]);
+
+  if (error) {
+    console.error("Arbetsdagen kunde inte skapas.");
+    throw new Error("Arbetsdagen kunde inte skapas.");
+  }
+}
+
+export async function getWorkdays(): Promise<WorkdayType[]> {
+  const { data, error } = await supabase.from("workdays").select("*");
+
+  if (error) {
+    console.error("Arbetsdagarna kunde inte hämtas.");
+    throw new Error("Arbetsdagarna kunde inte hämtas.");
+  }
+
+  return data;
+}
+
+export async function deleteWorkday({
+  staffID,
+  date,
+}: {
+  staffID: number;
+  date: string;
+}): Promise<void> {
+  const { error } = await supabase
+    .from("workdays")
+    .delete()
+    .eq("staffID", staffID)
+    .eq("date", date);
+
+  if (error) {
+    console.error("Arbetsdagen kunde inte raderas.");
+    throw new Error("Arbetsdagen kunde inte raderas.");
   }
 }

@@ -1,30 +1,25 @@
-import { useActiveBookings } from "@/features/calendar/useActiveBookings";
+import { useBookings } from "@/features/calendar/useBookings";
+import { useWorkdays } from "@/features/calendar/useWorkdays";
 import { useStaff } from "@/hooks/useStaff";
 import {
   CalendarStaffMembers,
   EditBookingType,
-  FilteredAppointments,
+  FilteredEventsType,
   StaffType,
 } from "@/services/types";
-import { parseISO } from "date-fns";
+import { addMinutes, formatISO, parse, parseISO, subMinutes } from "date-fns";
 import { createContext, useContext, useMemo, useRef, useState } from "react";
 
 type CalendarContextType = {
   staffMembers: CalendarStaffMembers[] | undefined;
-  filteredAppointments: FilteredAppointments[] | undefined;
+  filteredEvents: FilteredEventsType;
   selectedStaff: number;
   setSelectedStaff: (value: number) => void;
   currentBookingInfoInitialState: EditBookingType;
   currentBookingInfo: React.MutableRefObject<EditBookingType>;
   currentStaffMember: StaffType | undefined;
   fetchingStaff: boolean;
-  isLoadingactiveBookings: boolean;
-  openDialog: boolean;
-  setOpenDialog: (value: boolean) => void;
-  openAlertDialog: boolean;
-  setOpenAlertDialog: (value: boolean) => void;
-  openBreakDialog: boolean;
-  setOpenBreakDialog: (value: boolean) => void;
+  isLoadingBookings: boolean;
 };
 
 const CalendarContext = createContext<CalendarContextType | undefined>(
@@ -46,6 +41,7 @@ const currentBookingInfoInitialState = {
   id: 0,
   serviceID: 0,
   date: new Date(),
+  isBreak: false,
 };
 
 export default function CalendarProvider({
@@ -54,15 +50,47 @@ export default function CalendarProvider({
   children: React.ReactNode;
 }): JSX.Element {
   const { staff, fetchingStaff } = useStaff();
-  const { activeBookings, isLoadingactiveBookings } = useActiveBookings();
+  const { bookings, isLoadingBookings } = useBookings();
+  const { workdays } = useWorkdays();
+
   const [selectedStaff, setSelectedStaff] = useState<number>(2);
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
-  const [openBreakDialog, setOpenBreakDialog] = useState<boolean>(false);
 
   const currentBookingInfo = useRef<EditBookingType>(
     currentBookingInfoInitialState
   );
+
+  const workdaysEvents = useMemo(() => {
+    const startEvents =
+      workdays?.map((day) => {
+        return {
+          Id: day.id,
+          Subject: "Start av dagen",
+          StartTime: subMinutes(
+            formatISO(parse(day.startTime, "HH:mm", new Date(day.date))),
+            7
+          ).toISOString(),
+          EndTime: formatISO(parse(day.startTime, "HH:mm", new Date(day.date))),
+          IsAllDay: false,
+          ResourceId: day.staffID,
+        };
+      }) || [];
+    const endEvents =
+      workdays?.map((day) => {
+        return {
+          Id: day.id,
+          Subject: "Slutet av dagen",
+          StartTime: formatISO(parse(day.endTime, "HH:mm", new Date(day.date))),
+          EndTime: addMinutes(
+            formatISO(parse(day.endTime, "HH:mm", new Date(day.date))),
+            7
+          ).toISOString(),
+          IsAllDay: false,
+          ResourceId: day.staffID,
+        };
+      }) || [];
+
+    return [...startEvents, ...endEvents];
+  }, [workdays]);
 
   // Transform staff to fit the scheduler
   const staffMembers: CalendarStaffMembers[] | undefined = useMemo(() => {
@@ -76,39 +104,45 @@ export default function CalendarProvider({
   }, [staff]);
 
   // Transform bookings to fit the scheduler
-  const transformedBookings = activeBookings?.map((booking, index) => {
-    const startDateTime = parseISO(
-      `${booking.selectedDate}T${booking.startTime}:00`
-    );
+  const transformedBookings =
+    bookings
+      ?.filter((booking) => !booking.canceled)
+      .map((booking, index) => {
+        const startDateTime = parseISO(
+          `${booking.selectedDate}T${booking.startTime}:00`
+        );
+        const endDateTime = new Date(startDateTime);
+        endDateTime.setMinutes(endDateTime.getMinutes() + booking.duration);
 
-    const endDateTime = new Date(startDateTime);
-    endDateTime.setMinutes(endDateTime.getMinutes() + booking.duration);
-
-    return {
-      Id: index + 1,
-      Subject: booking.service?.title,
-      StartTime: startDateTime.toISOString(),
-      EndTime: endDateTime.toISOString(),
-      IsAllDay: false,
-      ResourceId: booking.staff_id,
-      GuestInfo: booking.guestInfo,
-      Break: booking.break,
-      BookingInfo: {
-        price: booking.service?.price ?? 0,
-        id: booking.id,
-        serviceID: booking.service?.id ?? 0,
-        createdAt: booking.created_at.toString(),
-        extraServices: booking.extraServices,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        duration: booking.duration,
-      },
-    };
-  });
+        return {
+          Id: index + 1,
+          Subject: booking.service?.title,
+          StartTime: startDateTime.toISOString(),
+          EndTime: endDateTime.toISOString(),
+          IsAllDay: false,
+          ResourceId: booking.staff_id,
+          GuestInfo: booking.guestInfo,
+          Break: booking.break,
+          BookingInfo: {
+            price: booking.service?.price ?? 0,
+            id: booking.id,
+            serviceID: booking.service?.id ?? 0,
+            createdAt: booking.created_at.toString(),
+            extraServices: booking.extraServices,
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+            duration: booking.duration,
+          },
+        };
+      }) || [];
 
   const filteredAppointments = transformedBookings?.filter(
     (appointment) => selectedStaff === appointment.ResourceId
   );
+  const filteredWorkdays = workdaysEvents?.filter(
+    (workday) => selectedStaff === workday.ResourceId
+  );
+  const filteredEvents = [...filteredAppointments, ...filteredWorkdays];
 
   const currentStaffMember = staff?.find(
     (staffMember) => staffMember.id === selectedStaff
@@ -118,20 +152,14 @@ export default function CalendarProvider({
     <CalendarContext.Provider
       value={{
         staffMembers,
-        filteredAppointments,
+        filteredEvents,
         selectedStaff,
         setSelectedStaff,
         currentBookingInfoInitialState,
         currentBookingInfo,
         currentStaffMember,
         fetchingStaff,
-        isLoadingactiveBookings,
-        openDialog,
-        setOpenDialog,
-        openAlertDialog,
-        setOpenAlertDialog,
-        openBreakDialog,
-        setOpenBreakDialog,
+        isLoadingBookings,
       }}
     >
       {children}

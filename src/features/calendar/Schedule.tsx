@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useCalendar } from "@/context/CalendarContext";
-import { EventTemplate, FilteredAppointments } from "@/services/types";
+import { EventTemplate, FilteredEventsType } from "@/services/types";
 import {
   L10n,
   loadCldr,
@@ -34,10 +34,11 @@ import {
   WorkWeek,
 } from "@syncfusion/ej2-react-schedule";
 import { format } from "date-fns";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import AddBookingForm from "./AddBookingForm";
+import AddBreakForm from "./AddBreakForm";
 import BookingPersonelDropdown from "./BookingStaffDropdown";
-import CalendarBreakAppointment from "./CalendarBreakAppointment";
-import CalendarEditForm from "./CalendarEditForm";
+import CalendarFeatures from "./CalendarFeatures";
 import SchedulerContent from "./SchedulerContent";
 import SchedulerFooter from "./SchedulerFooter";
 import SchedulerHeader from "./SchedulerHeader";
@@ -61,19 +62,17 @@ const syncfusionKey = import.meta.env.VITE_SYNCFUSION_KEY;
 registerLicense(syncfusionKey);
 
 export default function Schedule(): JSX.Element {
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
+  const [openBreakDialog, setOpenBreakDialog] = useState<boolean>(false);
   const scheduleRef = useRef<ScheduleComponent>(null);
   const { onCancelBooking } = useCancelBooking();
   const {
-    filteredAppointments,
+    filteredEvents,
     currentBookingInfo,
     currentBookingInfoInitialState,
     fetchingStaff,
-    isLoadingactiveBookings,
-    openDialog,
-    setOpenDialog,
-    openAlertDialog,
-    setOpenAlertDialog,
-    setOpenBreakDialog,
+    isLoadingBookings,
   } = useCalendar();
 
   function eventTemplate(props: EventTemplate) {
@@ -89,32 +88,43 @@ export default function Schedule(): JSX.Element {
         }`}
       >
         <h4 className="font-semibold">{props.Subject}</h4>
-        <p className="mt-1">{props.GuestInfo.name}</p>
+        {props.GuestInfo && <p className="mt-1">{props.GuestInfo.name}</p>}
         <p>{formattedTime}</p>
       </div>
     );
   }
 
   const eventSettings = {
-    dataSource: filteredAppointments,
+    dataSource: filteredEvents,
     template: eventTemplate,
   };
 
   function onEventRendered(args: {
     element: HTMLElement;
-    data: FilteredAppointments;
+    data: FilteredEventsType;
   }) {
-    args.element.style.backgroundColor = args.data.Break
+    const isBreak = "Break" in args.data && args.data.Break;
+    const subject = "Subject" in args.data && args.data.Subject;
+
+    args.element.style.backgroundColor = isBreak
       ? "#d4d4d8"
+      : subject === "Start av dagen" || subject === "Slutet av dagen"
+      ? "#FACC15"
       : "#CCFBF1";
-    args.element.style.borderColor = args.data.Break ? "#d4d4d8" : "#CCFBF1";
+
+    args.element.style.borderColor = isBreak
+      ? "#d4d4d8"
+      : subject === "Start av dagen" || subject === "Slutet av dagen"
+      ? "#FACC15"
+      : "#CCFBF1";
   }
 
   function handleDialogClose(isOpen: boolean) {
     if (!isOpen) {
       currentBookingInfo.current = currentBookingInfoInitialState;
     }
-    setOpenDialog(isOpen);
+    setOpenDialog(false);
+    setOpenBreakDialog(false);
   }
 
   function QuickInfoHeaderTemplate(props: EventTemplate) {
@@ -122,8 +132,7 @@ export default function Schedule(): JSX.Element {
 
     return (
       <SchedulerHeader
-        breakBooking={props.Break}
-        createdDate={props.BookingInfo?.createdAt as string}
+        bookingInfo={props}
         closePopup={() => scheduleRef.current?.closeQuickInfoPopup()}
       />
     );
@@ -135,12 +144,12 @@ export default function Schedule(): JSX.Element {
     const bookingInfo = {
       resourceID: props.ResourceId,
       subject: props.Subject,
-      guestInfo: props.GuestInfo,
+      guestInfo: props.GuestInfo || {},
       startTime: props.StartTime.toString(),
       endTime: props.EndTime.toString(),
       extraServices: props.BookingInfo?.extraServices || [],
       price: props.BookingInfo?.price || 0,
-      breakBooking: props.Break,
+      breakBooking: props.Break || false,
     };
 
     return <SchedulerContent bookingInfo={bookingInfo} />;
@@ -163,6 +172,7 @@ export default function Schedule(): JSX.Element {
         observations: "",
         phone: "",
       },
+      isBreak: props.Break || false,
     };
 
     useEffect(() => {
@@ -171,13 +181,16 @@ export default function Schedule(): JSX.Element {
 
     if (props.elementType === "cell") return null;
 
-    console.log(props.Break);
-
     return (
       <SchedulerFooter
         closePopup={() => scheduleRef.current?.closeQuickInfoPopup()}
         setOpenAlertDialog={setOpenAlertDialog}
         setOpenDialog={props.Break ? setOpenBreakDialog : setOpenDialog}
+        isWorkday={
+          props.Subject === "Start av dagen" ||
+          props.Subject === "Slutet av dagen"
+        }
+        isBreak={props.Break}
       />
     );
   }
@@ -189,13 +202,15 @@ export default function Schedule(): JSX.Element {
     }
   }
 
-  if (fetchingStaff || isLoadingactiveBookings) return <Spinner />;
+  if (fetchingStaff || isLoadingBookings) return <Spinner />;
 
   return (
     <>
       <div className="flex justify-between mb-2">
         <BookingPersonelDropdown />
-        <CalendarBreakAppointment />
+        <div className="flex space-x-2">
+          <CalendarFeatures />
+        </div>
       </div>
 
       <ScheduleComponent
@@ -254,12 +269,24 @@ export default function Schedule(): JSX.Element {
       <Dialog open={openDialog} onOpenChange={handleDialogClose}>
         <DialogContent className="overflow-y-auto max-h-full">
           <DialogHeader>
-            <DialogTitle className="hidden">
-              {currentBookingInfo.current.subject}
+            <DialogTitle>
+              {currentBookingInfo.current.id === 0
+                ? "Lägg till bokning"
+                : "Redigera bokning"}
             </DialogTitle>
             <DialogDescription className="hidden"></DialogDescription>
           </DialogHeader>
-          <CalendarEditForm />
+          <AddBookingForm />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openBreakDialog} onOpenChange={handleDialogClose}>
+        <DialogContent className="overflow-y-auto max-h-full">
+          <DialogHeader>
+            <DialogTitle>{currentBookingInfo.current.subject}</DialogTitle>
+            <DialogDescription className="hidden"></DialogDescription>
+          </DialogHeader>
+          <AddBreakForm />
         </DialogContent>
       </Dialog>
 
@@ -273,7 +300,7 @@ export default function Schedule(): JSX.Element {
             currentBookingInfo ? currentBookingInfo.current.id : 0
           )
         }
-        actionText="Avboka"
+        actionText={currentBookingInfo.current.isBreak ? "Ta bort" : "Avboka"}
       />
     </>
   );

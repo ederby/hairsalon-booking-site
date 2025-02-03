@@ -42,6 +42,10 @@ export default function SchedulerContent({
       )
     : 0;
 
+  const isWorkday =
+    bookingInfo.subject === "Start av dagen" ||
+    bookingInfo.subject === "Slutet av dagen";
+
   return (
     <div className="text-zinc-700 relative py-2 grow">
       <div className="flex items-center gap-1 justify-between">
@@ -84,20 +88,24 @@ export default function SchedulerContent({
 
         <div className="w-full flex justify-between items-center">
           <span className="text-zinc-400">Tid</span>
-          <span>
-            {format(bookingInfo.startTime, "HH:mm")} -{" "}
-            {format(bookingInfo.endTime, "HH:mm")}
-          </span>
+          {!isWorkday ? (
+            <span>
+              {format(bookingInfo.startTime, "HH:mm")} -{" "}
+              {format(bookingInfo.endTime, "HH:mm")}
+            </span>
+          ) : (
+            <span>{format(bookingInfo.endTime, "HH:mm")}</span>
+          )}
         </div>
 
-        {!bookingInfo.breakBooking && (
+        {!bookingInfo.breakBooking && !isWorkday && (
           <div className="w-full flex justify-between items-center">
             <span className="text-zinc-400">Totalpris</span>
             <span>{totalPrice} kr</span>
           </div>
         )}
       </div>
-      {!bookingInfo.breakBooking && (
+      {!bookingInfo.breakBooking && !isWorkday && (
         <>
           <Separator className="my-3" />
 

@@ -8,8 +8,7 @@ export function useEditBooking() {
   const { mutate: onEditBooking, isPending: isEditingBooking } = useMutation({
     mutationFn: editBooking,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activebookings"] });
-
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
       toast({
         title: "Hurra!",
         description: "Bokningen har uppdaterats",

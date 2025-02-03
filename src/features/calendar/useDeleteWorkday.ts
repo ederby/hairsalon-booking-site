@@ -1,31 +1,31 @@
 import { useToast } from "@/hooks/use-toast";
-import { deleteBooking } from "@/services/apiCalendars";
+import { deleteWorkday } from "@/services/apiCalendars";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export function useDeleteBooking() {
+export function useDeleteWorkday() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { mutate: onDeleteBooking, isPending: isDeletingBooking } = useMutation(
+  const { mutate: onDeleteWorkday, isPending: isDeletingWorkday } = useMutation(
     {
-      mutationFn: deleteBooking,
+      mutationFn: deleteWorkday,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["bookings"] });
+        queryClient.invalidateQueries({ queryKey: ["workdays"] });
         toast({
           title: "Hurra!",
-          description: "Bokning har raderats",
+          description: "Arbetsdagen har tagits bort",
           onSuccess: true,
         });
       },
       onError: () => {
         toast({
           title: "Attans!",
-          description: "Bokning kunde inte raderas",
+          description: "Arbetsdagen kunde inte tas bort",
           onSuccess: false,
         });
       },
     }
   );
 
-  return { onDeleteBooking, isDeletingBooking };
+  return { onDeleteWorkday, isDeletingWorkday };
 }

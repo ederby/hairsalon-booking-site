@@ -62,7 +62,12 @@ export type GuestInfoType = {
   observations?: string;
 };
 
-export type FilteredAppointments = {
+export type FilteredEventsType = (
+  | FilteredAppointmentsType
+  | FilteredWorkdaysType
+)[];
+
+export type FilteredAppointmentsType = {
   Id: number;
   Subject: string | undefined;
   StartTime: string;
@@ -72,6 +77,14 @@ export type FilteredAppointments = {
   Break: boolean;
   GuestInfo: GuestInfoType;
   BookingInfo: BookingInfoType;
+};
+export type FilteredWorkdaysType = {
+  Id: number;
+  EndTime: string;
+  IsAllDay: boolean;
+  ResourceId: number;
+  StartTime: string;
+  Subject: string;
 };
 
 export type BookingType = {
@@ -100,6 +113,7 @@ export type EditBookingType = {
   resourceID: number;
   guestInfo: GuestInfoType;
   date: Date;
+  isBreak: boolean;
 };
 
 export type BreakType = {
@@ -142,4 +156,12 @@ export type CalendarStaffMembers = {
   schedule: {
     [date: string]: string[];
   };
+};
+
+export type WorkdayType = {
+  id: number;
+  staffID: number;
+  date: string;
+  startTime: string;
+  endTime: string;
 };

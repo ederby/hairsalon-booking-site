@@ -1,6 +1,5 @@
 import Spinner from "@/components/layout/Spinner";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   FormControl,
   FormField,
@@ -9,11 +8,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -24,8 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useCalendar } from "@/context/CalendarContext";
 import { useStaff } from "@/hooks/useStaff";
-import { formatCustomDate, incrementTime } from "@/lib/helpers";
-import { cn } from "@/lib/utils";
+import { incrementTime } from "@/lib/helpers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogClose } from "@radix-ui/react-dialog";
 import {
@@ -36,35 +29,28 @@ import {
   setSeconds,
   startOfDay,
 } from "date-fns";
-import { sv } from "date-fns/locale";
-import {
-  CalendarIcon,
-  CalendarPlus,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-} from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
+import CustomCalendar from "./CustomCalendar";
 import { useCreateBreak } from "./useCreateBreak";
 import { useEditBreak } from "./useEditBreak";
+import CustomStaffSelect from "./CustomStaffSelect";
 
 type OnSubmitType = z.infer<typeof formSchema>;
 
 const formSchema = z.object({
   service: z.string().nonempty("Titel är obligatorisk"),
   staff: z.string().nonempty("Välj en person"),
-  date: z.date().refine((date) => date >= startOfDay(new Date()), {
-    message: "Välj ett tillgängligt datum",
-  }),
+  date: z.date({ required_error: "Välj ett datum" }),
   startTime: z.string().nonempty("Välj en starttid"),
   endTime: z.string().nonempty("Välj en sluttid"),
   notes: z.string().optional(),
   id: z.number(),
 });
 
-export default function BreakForm(): JSX.Element {
-  const { staff, fetchingStaff } = useStaff();
+export default function AddBreakForm(): JSX.Element {
+  const { fetchingStaff } = useStaff();
   const { currentBookingInfo, currentStaffMember } = useCalendar();
   const bookingInfo = currentBookingInfo.current;
 
@@ -120,7 +106,7 @@ export default function BreakForm(): JSX.Element {
           name="service"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Frånvaroorsak</FormLabel>
+              <FormLabel htmlFor="service">Frånvaroorsak</FormLabel>
               <FormControl>
                 <Select
                   value={field.value}
@@ -135,6 +121,9 @@ export default function BreakForm(): JSX.Element {
                     <SelectItem value={"Lunchrast"}>
                       <span>Lunchrast</span>
                     </SelectItem>
+                    <SelectItem value={"Sjukdom"}>
+                      <span>Sjukdom</span>
+                    </SelectItem>
                     <SelectItem value={"Frånvaro"}>
                       <span>Annan frånvaro</span>
                     </SelectItem>
@@ -146,89 +135,12 @@ export default function BreakForm(): JSX.Element {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="staff"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Personal</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={(e) => {
-                    field.onChange(e);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Välj en person" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {staff?.map((staffMember) => (
-                      <SelectItem
-                        key={staffMember.id}
-                        value={staffMember.id.toString()}
-                      >
-                        <span>{staffMember.name}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <CustomStaffSelect control={form.control} name="staff" />
+        <CustomCalendar control={form.control} name="date" />
 
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel className="mb-1">Datum</FormLabel>
-              <FormControl>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      // disabled={staffWatcher === ""}
-                      variant={"outline"}
-                      className={cn(
-                        "justify-start text-left font-normal h-9",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon />
-                      {field.value ? (
-                        formatCustomDate(new Date(field.value))
-                      ) : (
-                        <span>Välj ett datum</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={(selectedDate) => {
-                        field.onChange(selectedDate);
-                      }}
-                      initialFocus
-                      locale={sv}
-                      disabled={(date) => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        return date < today;
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div>
-          <FormLabel>Tid</FormLabel>
-          <div className="flex w-full mt-1.5">
+        <div className="space-y-2">
+          <FormLabel htmlFor="startTime">Tid</FormLabel>
+          <div className="flex w-full">
             <FormField
               control={form.control}
               name="startTime"
@@ -320,7 +232,7 @@ export default function BreakForm(): JSX.Element {
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bokningsanteckningar</FormLabel>
+              <FormLabel htmlFor="notes">Bokningsanteckningar</FormLabel>
               <FormControl>
                 <Textarea {...field} />
               </FormControl>

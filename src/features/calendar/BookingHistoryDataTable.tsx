@@ -44,8 +44,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { bookingHistoryColumns } from "./BookingHistoryColumns";
 import BookingInfo from "./BookingInfo";
-import CalendarEditForm from "./CalendarEditForm";
-import { useAllBookings } from "./useAllBookings";
+import AddBookingForm from "./AddBookingForm";
+import { useBookings } from "./useBookings";
 import { useDeleteBooking } from "./useDeleteBooking";
 
 interface TransformedBookingType {
@@ -58,6 +58,8 @@ interface TransformedBookingType {
 
 export default function BookingHistoryDataTable(): JSX.Element {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [statusFilter, setStatusFilter] = useState<
     "all" | "canceled" | "expired" | "booked" | ""
@@ -65,8 +67,6 @@ export default function BookingHistoryDataTable(): JSX.Element {
 
   const { fetchingStaff } = useStaff();
   const { onDeleteBooking } = useDeleteBooking();
-  const { openDialog, setOpenDialog, openAlertDialog, setOpenAlertDialog } =
-    useCalendar();
   const {
     currentBookingID,
     setCurrentBookingID,
@@ -75,11 +75,11 @@ export default function BookingHistoryDataTable(): JSX.Element {
     bookAgain,
   } = useBookingHistory();
   const { currentBookingInfo } = useCalendar();
-  const { allBookings, isLoadingAllBookings } = useAllBookings();
+  const { bookings, isLoadingBookings } = useBookings();
 
   const transformedBookings: TransformedBookingType[] = useMemo(
     () =>
-      allBookings
+      bookings
         ?.filter((booking) => !booking.break)
         .map((booking) => ({
           date: booking.selectedDate,
@@ -93,7 +93,7 @@ export default function BookingHistoryDataTable(): JSX.Element {
           customerName: booking.guestInfo.name,
           id: booking.id,
         })) ?? [],
-    [allBookings]
+    [bookings]
   );
 
   const filteredBookingsByStatus = useMemo(
@@ -126,7 +126,7 @@ export default function BookingHistoryDataTable(): JSX.Element {
     ]
   );
 
-  const currentBooking = allBookings?.find(
+  const currentBooking = bookings?.find(
     (booking) => booking.id === currentBookingID
   );
 
@@ -149,6 +149,7 @@ export default function BookingHistoryDataTable(): JSX.Element {
     id: 0,
     serviceID: currentBooking?.service?.id ?? 0,
     date: new Date(),
+    isBreak: false,
   };
 
   const table = useReactTable({
@@ -166,7 +167,7 @@ export default function BookingHistoryDataTable(): JSX.Element {
     },
   });
 
-  if (fetchingStaff || isLoadingAllBookings) return <Spinner />;
+  if (fetchingStaff || isLoadingBookings) return <Spinner />;
 
   return (
     <>
@@ -293,7 +294,7 @@ export default function BookingHistoryDataTable(): JSX.Element {
             <DialogDescription className="hidden"></DialogDescription>
           </DialogHeader>
           {bookAgain ? (
-            <CalendarEditForm bookAgain={true} />
+            <AddBookingForm bookAgain={true} />
           ) : (
             <BookingInfo booking={currentBooking} />
           )}

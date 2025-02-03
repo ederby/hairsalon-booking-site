@@ -8,9 +8,7 @@ export function useEditBreak() {
   const { mutate: onEditBreak, isPending: isEditingBreak } = useMutation({
     mutationFn: editBreak,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activebookings"] });
-      queryClient.invalidateQueries({ queryKey: ["allbookings"] });
-
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
       toast({
         title: "Hurra!",
         description: "Frånvaron har uppdaterats",
