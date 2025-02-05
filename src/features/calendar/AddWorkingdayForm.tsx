@@ -4,6 +4,8 @@ import { DialogClose } from "@/components/ui/dialog";
 import { FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useCalendar } from "@/context/CalendarContext";
+import { toast } from "@/hooks/use-toast";
+import { useDebouncedTimeValidation } from "@/hooks/useDebouncedTimeValidation";
 import { useStaff } from "@/hooks/useStaff";
 import { incrementTime } from "@/lib/helpers";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +16,6 @@ import { z } from "zod";
 import CustomCalendar from "./CustomCalendar";
 import CustomStaffSelect from "./CustomStaffSelect";
 import { useCreateWorkday } from "./useCreateWorkday";
-import { toast } from "@/hooks/use-toast";
 
 type OnSubmitType = z.infer<typeof formSchema>;
 
@@ -26,6 +27,7 @@ const formSchema = z.object({
 });
 
 export function AddWorkingDayForm(): JSX.Element {
+  // const [isTyping, setIsTyping] = useState(false);
   const { fetchingStaff } = useStaff();
   const { onCreateWorkday, isCreatingWorkday } = useCreateWorkday();
   const { currentStaffMember, filteredEvents } = useCalendar();
@@ -38,6 +40,13 @@ export function AddWorkingDayForm(): JSX.Element {
   const form = useForm<OnSubmitType>({
     resolver: zodResolver(formSchema),
     defaultValues: initialValues,
+  });
+
+  // Make sure that the end time is always after the start time
+  const { handleTyping } = useDebouncedTimeValidation({
+    form,
+    startTimeField: "startTime",
+    endTimeField: "endTime",
   });
 
   function onSubmit(data: OnSubmitType) {
@@ -101,7 +110,10 @@ export function AddWorkingDayForm(): JSX.Element {
                     className="rounded-none shadow-none justify-center relative z-10 h-9 text-sm"
                     type="time"
                     value={field.value}
-                    onChange={(v) => field.onChange(v)}
+                    onChange={(v) => {
+                      handleTyping();
+                      field.onChange(v);
+                    }}
                     step="900"
                   />
                   <Button
@@ -139,7 +151,10 @@ export function AddWorkingDayForm(): JSX.Element {
                     className="rounded-none shadow-none justify-center relative z-10 h-9 text-sm"
                     type="time"
                     value={field.value}
-                    onChange={(v) => field.onChange(v)}
+                    onChange={(v) => {
+                      handleTyping();
+                      field.onChange(v);
+                    }}
                     step="900"
                   />
                   <Button
@@ -163,10 +178,7 @@ export function AddWorkingDayForm(): JSX.Element {
             <Button variant="outline">Stäng</Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button
-              disabled={!form.formState.isValid || !form.formState.isDirty}
-              type="submit"
-            >
+            <Button disabled={!form.formState.isValid} type="submit">
               {isCreatingWorkday ? (
                 <Loader2 className="animate-spin" />
               ) : (

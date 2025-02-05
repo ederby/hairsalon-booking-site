@@ -19,7 +19,7 @@ export default function SchedulerFooter({
   if (isWorkday) return null;
 
   return (
-    <div className="flex gap-2 justify-end py-4 px-4">
+    <div className="flex gap-2 justify-end py-4">
       <Button
         onClick={() => {
           closePopup();

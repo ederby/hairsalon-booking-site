@@ -7,7 +7,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -18,7 +17,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useCalendar } from "@/context/CalendarContext";
 import { useStaff } from "@/hooks/useStaff";
-import { incrementTime } from "@/lib/helpers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogClose } from "@radix-ui/react-dialog";
 import {
@@ -29,13 +27,16 @@ import {
   setSeconds,
   startOfDay,
 } from "date-fns";
-import { CalendarPlus, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { CalendarPlus, Loader2 } from "lucide-react";
+import { useMemo } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
+import AddBreakTimeField from "./AddBreakTimeField";
 import CustomCalendar from "./CustomCalendar";
+import CustomStaffSelect from "./CustomStaffSelect";
 import { useCreateBreak } from "./useCreateBreak";
 import { useEditBreak } from "./useEditBreak";
-import CustomStaffSelect from "./CustomStaffSelect";
+import { useDebouncedTimeValidation } from "@/hooks/useDebouncedTimeValidation";
 
 type OnSubmitType = z.infer<typeof formSchema>;
 
@@ -54,15 +55,18 @@ export default function AddBreakForm(): JSX.Element {
   const { currentBookingInfo, currentStaffMember } = useCalendar();
   const bookingInfo = currentBookingInfo.current;
 
-  const initialValues = {
-    service: bookingInfo.subject || "",
-    staff: currentStaffMember?.id.toString() || "",
-    date: startOfDay(bookingInfo.date || new Date()),
-    startTime: bookingInfo.startTime || "12:00",
-    endTime: bookingInfo.endTime || "13:00",
-    notes: bookingInfo.guestInfo.name || "",
-    id: bookingInfo.id || 0,
-  };
+  const initialValues = useMemo(
+    () => ({
+      service: bookingInfo.subject || "",
+      staff: currentStaffMember?.id.toString() || "",
+      date: startOfDay(bookingInfo.date || new Date()),
+      startTime: bookingInfo.startTime || "12:00",
+      endTime: bookingInfo.endTime || "13:00",
+      notes: bookingInfo.guestInfo.name || "",
+      id: bookingInfo.id || 0,
+    }),
+    [bookingInfo, currentStaffMember]
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -92,6 +96,25 @@ export default function AddBreakForm(): JSX.Element {
     if (data.id !== 0)
       onEditBreak({ breakBooking: newBreak, id: data.id ?? 0 });
   }
+  // Make sure that the end time is always after the start time
+  const { handleTyping } = useDebouncedTimeValidation({
+    form,
+    startTimeField: "startTime",
+    endTimeField: "endTime",
+  });
+
+  // const watchStartTime = form.watch("startTime");
+  // const watchEndTime = form.watch("endTime");
+  // useEffect(() => {
+  //   if (watchStartTime && watchEndTime) {
+  //     const startTime = parse(watchStartTime, "HH:mm", new Date());
+  //     const endTime = parse(watchEndTime, "HH:mm", new Date());
+
+  //     if (startTime >= endTime) {
+  //       form.setValue("endTime", format(addMinutes(startTime, 15), "HH:mm"));
+  //     }
+  //   }
+  // }, [watchStartTime, watchEndTime, form]);
 
   if (fetchingStaff) return <Spinner />;
 
@@ -108,25 +131,14 @@ export default function AddBreakForm(): JSX.Element {
             <FormItem>
               <FormLabel htmlFor="service">Frånvaroorsak</FormLabel>
               <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={(e) => {
-                    field.onChange(e);
-                  }}
-                >
+                <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Välj en frånvaro" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={"Lunchrast"}>
-                      <span>Lunchrast</span>
-                    </SelectItem>
-                    <SelectItem value={"Sjukdom"}>
-                      <span>Sjukdom</span>
-                    </SelectItem>
-                    <SelectItem value={"Frånvaro"}>
-                      <span>Annan frånvaro</span>
-                    </SelectItem>
+                    <SelectItem value={"Lunchrast"}>Lunchrast</SelectItem>
+                    <SelectItem value={"Sjukdom"}>Sjukdom</SelectItem>
+                    <SelectItem value={"Frånvaro"}>Annan frånvaro</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -141,88 +153,16 @@ export default function AddBreakForm(): JSX.Element {
         <div className="space-y-2">
           <FormLabel htmlFor="startTime">Tid</FormLabel>
           <div className="flex w-full">
-            <FormField
+            <AddBreakTimeField
               control={form.control}
               name="startTime"
-              render={({ field }) => (
-                <FormItem className="flex flex-col w-full">
-                  <FormControl>
-                    <div className="flex">
-                      <Button
-                        type="button"
-                        className="rounded-r-none border-r-0 px-2 h-9 text-zinc-500"
-                        variant="outline"
-                        onClick={() =>
-                          field.onChange(incrementTime(field.value, -15))
-                        }
-                      >
-                        <ChevronLeft size={16} strokeWidth={1.5} />
-                      </Button>
-                      <Input
-                        className="rounded-none shadow-none justify-center relative z-10 h-9 text-sm"
-                        type="time"
-                        value={field.value}
-                        onChange={(v) => field.onChange(v)}
-                        step="900"
-                      />
-                      <Button
-                        type="button"
-                        className="rounded-l-none border-l-0 px-2 h-9 text-zinc-500"
-                        variant="outline"
-                        onClick={() =>
-                          field.onChange(incrementTime(field.value, 15))
-                        }
-                      >
-                        <ChevronRight size={16} strokeWidth={1.5} />
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              handleTyping={handleTyping}
             />
-
             <span className="mx-2 mt-1">{"–"}</span>
-
-            <FormField
+            <AddBreakTimeField
               control={form.control}
               name="endTime"
-              render={({ field }) => (
-                <FormItem className="flex flex-col w-full">
-                  <FormControl>
-                    <div className="flex items-center">
-                      <Button
-                        type="button"
-                        className="rounded-r-none border-r-0 px-2 h-9 text-zinc-500"
-                        variant="outline"
-                        onClick={() =>
-                          field.onChange(incrementTime(field.value, -15))
-                        }
-                      >
-                        <ChevronLeft size={16} strokeWidth={1.5} />
-                      </Button>
-                      <Input
-                        className="rounded-none shadow-none justify-center relative z-10 h-9 text-sm"
-                        type="time"
-                        value={field.value}
-                        onChange={(v) => field.onChange(v)}
-                        step="900"
-                      />
-                      <Button
-                        type="button"
-                        className="rounded-l-none border-l-0 px-2 h-9 text-zinc-500"
-                        variant="outline"
-                        onClick={() =>
-                          field.onChange(incrementTime(field.value, 15))
-                        }
-                      >
-                        <ChevronRight size={16} strokeWidth={1.5} />
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              handleTyping={handleTyping}
             />
           </div>
         </div>

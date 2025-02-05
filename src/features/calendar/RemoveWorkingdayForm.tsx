@@ -57,10 +57,7 @@ export default function RemoveWorkingdayForm() {
             <Button variant="outline">Stäng</Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button
-              disabled={!form.formState.isValid || !form.formState.isDirty}
-              type="submit"
-            >
+            <Button disabled={!form.formState.isValid} type="submit">
               {isDeletingWorkday ? (
                 <Loader2 className="animate-spin" />
               ) : (

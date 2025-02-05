@@ -1,7 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { useStaff } from "@/hooks/useStaff";
 import { ExtraservicesType, GuestInfoType } from "@/services/types";
-import { format } from "date-fns";
+import { format, subMinutes } from "date-fns";
 import { sv } from "date-fns/locale";
 
 type SchedulerContentType = {
@@ -93,8 +93,10 @@ export default function SchedulerContent({
               {format(bookingInfo.startTime, "HH:mm")} -{" "}
               {format(bookingInfo.endTime, "HH:mm")}
             </span>
-          ) : (
+          ) : bookingInfo.subject === "Start av dagen" ? (
             <span>{format(bookingInfo.endTime, "HH:mm")}</span>
+          ) : (
+            <span>{format(subMinutes(bookingInfo.endTime, 7), "HH:mm")}</span>
           )}
         </div>
 

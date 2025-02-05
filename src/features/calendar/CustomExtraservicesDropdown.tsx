@@ -24,7 +24,7 @@ export default function CustomExtraservicesDropdown<T extends FieldValues>({
   setSelectedExtraServices,
   control,
   name,
-  className = "w-full",
+  className = "w-full space-y-2",
   label = "Tilläggstjänster",
 }: CustomExtraservicesDropdownProps<T>): JSX.Element {
   const { extraServices } = useExtraServices();

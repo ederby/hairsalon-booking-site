@@ -62,6 +62,7 @@ const syncfusionKey = import.meta.env.VITE_SYNCFUSION_KEY;
 registerLicense(syncfusionKey);
 
 export default function Schedule(): JSX.Element {
+  const [calendarDate, setCalendarDate] = useState<Date>(new Date());
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [openAlertDialog, setOpenAlertDialog] = useState<boolean>(false);
   const [openBreakDialog, setOpenBreakDialog] = useState<boolean>(false);
@@ -216,7 +217,7 @@ export default function Schedule(): JSX.Element {
       <ScheduleComponent
         ref={scheduleRef}
         locale="sv"
-        selectedDate={new Date()}
+        selectedDate={calendarDate}
         startHour="08:00"
         endHour="19:00"
         eventSettings={eventSettings}
@@ -237,6 +238,14 @@ export default function Schedule(): JSX.Element {
             date: args.startTime,
           };
           setOpenDialog(true);
+        }}
+        actionComplete={(args) => {
+          if (
+            args.requestType === "eventCreated" ||
+            args.requestType === "eventChanged"
+          ) {
+            setCalendarDate(args.data.StartTime);
+          }
         }}
       >
         <ViewsDirective>

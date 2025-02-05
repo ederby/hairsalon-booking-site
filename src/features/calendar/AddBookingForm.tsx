@@ -21,9 +21,15 @@ import {
 } from "@/lib/helpers";
 import { BookingType, GuestInfoType } from "@/services/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, startOfDay } from "date-fns";
+import { format } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import {
+  Controller,
+  ControllerRenderProps,
+  FormProvider,
+  useForm,
+} from "react-hook-form";
 import { z } from "zod";
 import { useCategories } from "../services/useCategories";
 import { useExtraServices } from "../services/useExtraServices";
@@ -34,7 +40,6 @@ import CustomStaffSelect from "./CustomStaffSelect";
 import { useCreateBooking } from "./useCreateBooking";
 import { useEditBooking } from "./useEditBooking";
 import { useServices } from "./useServices";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type CalendarEditFormProps = {
   bookAgain?: boolean;
@@ -45,9 +50,7 @@ const formSchema = z.object({
   service: z.string().nonempty("Titel är obligatorisk"),
   extraservices: z.array(z.number()).optional(),
   staff: z.string().nonempty("Välj en person"),
-  date: z.date().refine((date) => date >= startOfDay(new Date()), {
-    message: "Välj ett tillgängligt datum",
-  }),
+  date: z.date({ required_error: "Välj ett datum" }),
   startTime: z.string().nonempty("Välj en starttid"),
   endTime: z.string().nonempty("Välj en sluttid"),
   name: z.string().nonempty("Skriv kundens namn"),
@@ -77,9 +80,12 @@ export default function AddBookingForm({
       selectedExtraServices.includes(service.id)
     )
   );
-  const [isBeforeOpeningTime, setIsBeforeOpeningTime] =
-    useState<boolean>(false);
-  const [isAfterOpeningTime, setIsAfterOpeningTime] = useState<boolean>(false);
+
+  const [timeValidation, setTimeValidation] = useState({
+    isBeforeOpeningTime: false,
+    isAfterOpeningTime: false,
+  });
+
   const { onCreateBooking } = useCreateBooking();
 
   const initialValues = {
@@ -110,6 +116,18 @@ export default function AddBookingForm({
   const totalDuration =
     extraServicesDuration +
     (services?.find((services) => services.id === serviceWatch)?.duration || 0);
+
+  function handleTimeChange(
+    field: ControllerRenderProps<OnSubmitType, "startTime" | "endTime">,
+    increment: number
+  ) {
+    field.onChange(incrementTime(field.value, increment));
+    form.setValue("endTime", incrementTime(form.watch("endTime"), increment));
+    setTimeValidation({
+      isBeforeOpeningTime: isBeforeTime(form.watch("startTime"), "08:00"),
+      isAfterOpeningTime: isAfterTime(form.watch("endTime"), "19:00"),
+    });
+  }
 
   function onSubmit(data: OnSubmitType) {
     const newService = services?.find(
@@ -203,38 +221,28 @@ export default function AddBookingForm({
                       type="button"
                       className="rounded-r-none border-r-0 px-2 h-9 text-zinc-500"
                       variant="outline"
-                      onClick={() => {
-                        field.onChange(incrementTime(field.value, -15));
-                        form.setValue(
-                          "endTime",
-                          incrementTime(form.watch("endTime"), -15)
-                        );
-
-                        setIsAfterOpeningTime(
-                          isAfterTime(form.watch("endTime"), "19:00")
-                        );
-                        setIsBeforeOpeningTime(
-                          isBeforeTime(form.watch("startTime"), "08:00")
-                        );
-                      }}
+                      onClick={() => handleTimeChange(field, -15)}
                     >
                       <ChevronLeft size={16} strokeWidth={1.5} />
                     </Button>
                     <Input
                       className={`rounded-none shadow-none justify-center relative z-10 h-9 ${
-                        isBeforeOpeningTime ? "text-red-500" : ""
+                        timeValidation.isBeforeOpeningTime ? "text-red-500" : ""
                       }`}
                       type="time"
                       value={field.value}
                       onChange={(v) => {
                         field.onChange(v);
-
-                        setIsAfterOpeningTime(
-                          isAfterTime(form.watch("endTime"), "19:00")
-                        );
-                        setIsBeforeOpeningTime(
-                          isBeforeTime(form.watch("startTime"), "08:00")
-                        );
+                        setTimeValidation({
+                          isAfterOpeningTime: isAfterTime(
+                            form.watch("endTime"),
+                            "19:00"
+                          ),
+                          isBeforeOpeningTime: isBeforeTime(
+                            form.watch("startTime"),
+                            "08:00"
+                          ),
+                        });
                       }}
                       step="900"
                     />
@@ -242,19 +250,7 @@ export default function AddBookingForm({
                       type="button"
                       className="rounded-l-none border-l-0 px-2 h-9 text-zinc-500"
                       variant="outline"
-                      onClick={() => {
-                        field.onChange(incrementTime(field.value, 15));
-                        form.setValue(
-                          "endTime",
-                          incrementTime(form.watch("endTime"), 15)
-                        );
-                        setIsAfterOpeningTime(
-                          isAfterTime(form.watch("endTime"), "19:00")
-                        );
-                        setIsBeforeOpeningTime(
-                          isBeforeTime(form.watch("startTime"), "08:00")
-                        );
-                      }}
+                      onClick={() => handleTimeChange(field, 15)}
                     >
                       <ChevronRight size={16} strokeWidth={1.5} />
                     </Button>
@@ -273,42 +269,32 @@ export default function AddBookingForm({
                       type="button"
                       className="rounded-r-none border-r-0 px-2 h-9 text-zinc-500"
                       variant="outline"
-                      onClick={() => {
-                        field.onChange(incrementTime(field.value, -15));
-                        form.setValue(
-                          "startTime",
-                          incrementTime(form.watch("startTime"), -15)
-                        );
-                        setIsAfterOpeningTime(
-                          isAfterTime(form.watch("endTime"), "19:00")
-                        );
-                        setIsBeforeOpeningTime(
-                          isBeforeTime(form.watch("startTime"), "08:00")
-                        );
-                      }}
+                      onClick={() => handleTimeChange(field, -15)}
                     >
                       <ChevronLeft size={16} strokeWidth={1.5} />
                     </Button>
                     <Input
                       className={`rounded-none shadow-none justify-center relative z-10 h-9 ${
-                        isAfterOpeningTime ? "text-red-500" : ""
+                        timeValidation.isAfterOpeningTime ? "text-red-500" : ""
                       }`}
                       type="time"
                       value={field.value}
                       onChange={(v) => {
                         field.onChange(v);
-
                         form.setValue(
                           "startTime",
                           incrementTime(form.watch("endTime"), -totalDuration)
                         );
-
-                        setIsAfterOpeningTime(
-                          isAfterTime(form.watch("endTime"), "19:00")
-                        );
-                        setIsBeforeOpeningTime(
-                          isBeforeTime(form.watch("startTime"), "08:00")
-                        );
+                        setTimeValidation({
+                          isAfterOpeningTime: isAfterTime(
+                            form.watch("endTime"),
+                            "19:00"
+                          ),
+                          isBeforeOpeningTime: isBeforeTime(
+                            form.watch("startTime"),
+                            "08:00"
+                          ),
+                        });
                       }}
                       step="900"
                     />
@@ -316,19 +302,7 @@ export default function AddBookingForm({
                       type="button"
                       className="rounded-l-none border-l-0 px-2 h-9 text-zinc-500"
                       variant="outline"
-                      onClick={() => {
-                        field.onChange(incrementTime(field.value, 15));
-                        form.setValue(
-                          "startTime",
-                          incrementTime(form.watch("startTime"), 15)
-                        );
-                        setIsAfterOpeningTime(
-                          isAfterTime(form.watch("endTime"), "19:00")
-                        );
-                        setIsBeforeOpeningTime(
-                          isBeforeTime(form.watch("startTime"), "08:00")
-                        );
-                      }}
+                      onClick={() => handleTimeChange(field, 15)}
                     >
                       <ChevronRight size={16} strokeWidth={1.5} />
                     </Button>
@@ -336,12 +310,12 @@ export default function AddBookingForm({
                 )}
               />
             </div>
-            {isBeforeOpeningTime && (
+            {timeValidation.isBeforeOpeningTime && (
               <span className="text-red-500 text-xs">
                 Obs! Starttiden är innan öppning.
               </span>
             )}
-            {isAfterOpeningTime && (
+            {timeValidation.isAfterOpeningTime && (
               <span className="text-red-500 text-xs">
                 Obs! Sluttiden är efter öppning.
               </span>
