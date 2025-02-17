@@ -20,8 +20,9 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useCategories } from "./useCategories";
 import { useEditStaffCategories } from "./useEditStaffCategories";
+import { Loader2, PencilLine, Plus } from "lucide-react";
 
-type CategoryEditFormProps = {
+type AddCategoryFormProps = {
   categoryToEdit?: {
     title?: string;
     description?: string;
@@ -50,17 +51,16 @@ const formSchema = z.object({
   staff: z.array(z.number()).nonempty("Välj minst en person"),
 });
 
-export default function CategoryEditForm({
+export default function AddCategoryForm({
   categoryToEdit = {},
   onHandleCategory,
-}: CategoryEditFormProps): JSX.Element {
+}: AddCategoryFormProps): JSX.Element {
   const { id: isEditCategory, ...editValues } = categoryToEdit;
   const isEditSession = Boolean(isEditCategory);
-  const { staff, fetchingStaff } = useStaff();
+  const { staff, isLoadingStaff } = useStaff();
   const { categories, isLoadingCategories } = useCategories();
-  const { staffByCategoryID, fetchingStaffByCategoryID } = useStaffByCategoryID(
-    isEditCategory ?? -1
-  );
+  const { staffByCategoryID, isLoadingStaffByCategoryID } =
+    useStaffByCategoryID(isEditCategory ?? -1);
   const { onEditStaffCategories } = useEditStaffCategories();
   const [staffsActive, setStaffsActive] = useState<number[]>([]);
 
@@ -132,7 +132,7 @@ export default function CategoryEditForm({
     }
   }
 
-  if (fetchingStaffByCategoryID || fetchingStaff || isLoadingCategories)
+  if (isLoadingStaffByCategoryID || isLoadingStaff || isLoadingCategories)
     return <Spinner />;
 
   return (
@@ -170,11 +170,11 @@ export default function CategoryEditForm({
           control={form.control}
           name="image"
           render={({ field: { value, onChange, ...fieldProps } }) => (
-            <FormItem>
-              <FormLabel className="block mb-1">Välj en bild</FormLabel>
+            <FormItem className="space-y-3">
+              <FormLabel className="block">Välj en bild</FormLabel>
               <FormControl>
-                <input
-                  className="file:bg-teal-600 file:text-teal-50 file:border-0 file:rounded file:py-2 file:px-3 hover:file:bg-teal-500 file:cursor-pointer"
+                <Input
+                  className="pt-1.5 file:text-teal-600 focus-visible:ring-teal-600"
                   type="file"
                   id={value?.name}
                   accept="image/jpeg, image/png"
@@ -203,6 +203,7 @@ export default function CategoryEditForm({
                     const staffValues = value as number[];
                     return (
                       <ToggleGroup
+                        className="flex justify-start flex-wrap gap-2"
                         type="multiple"
                         value={value.map(String)}
                         onValueChange={(newValue) => {
@@ -232,10 +233,11 @@ export default function CategoryEditForm({
                             key={s.id}
                             size="lg"
                             value={s.name}
+                            variant="outline"
                             aria-label={s.name}
-                            className={`${
+                            className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-foreground file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:cursor-not-allowed disabled:opacity-50 file:cursor-pointer ${
                               staffsActive?.includes(s.id)
-                                ? "bg-amber-400 text-amber-900 hover:bg-amber-400 hover:text-amber-900"
+                                ? "bg-teal-600 text-white hover:bg-teal-600 hover:text-white"
                                 : ""
                             }`}
                           >
@@ -252,19 +254,24 @@ export default function CategoryEditForm({
           )}
         />
 
-        <DialogClose asChild>
-          <Button
-            className="w-full"
-            disabled={!isValid || isSubmitting}
-            type="submit"
-          >
-            {isSubmitting
-              ? "Laddar..."
-              : isEditSession
-              ? "Ändra"
-              : "Skapa kategori"}
-          </Button>
-        </DialogClose>
+        <div className="flex justify-end gap-2">
+          <DialogClose asChild>
+            <Button disabled={!isValid || isSubmitting} type="submit">
+              {isSubmitting ? (
+                <Loader2 className="animate-spin" />
+              ) : isEditSession ? (
+                <PencilLine strokeWidth={1.5} />
+              ) : (
+                <Plus strokeWidth={1.5} />
+              )}
+              {isSubmitting
+                ? "Laddar..."
+                : isEditSession
+                ? "Ändra"
+                : "Skapa kategori"}
+            </Button>
+          </DialogClose>
+        </div>
       </form>
     </FormProvider>
   );

@@ -7,13 +7,15 @@ import { Control, Controller, FieldValues, Path } from "react-hook-form";
 type AddBreakTimeFieldProps<T extends FieldValues> = {
   control: Control<T>;
   name: Path<T>;
-  handleTyping: () => void;
+  handleTyping?: () => void;
+  handleOnChange?: (v: string) => void;
 };
 
-export default function AddBreakTimeField<T extends FieldValues>({
+export default function TimePickerField<T extends FieldValues>({
   control,
   name,
   handleTyping,
+  handleOnChange,
 }: AddBreakTimeFieldProps<T>): JSX.Element {
   return (
     <div className="flex flex-col w-full">
@@ -26,7 +28,12 @@ export default function AddBreakTimeField<T extends FieldValues>({
               type="button"
               className="rounded-r-none border-r-0 px-2 h-9 text-zinc-500"
               variant="outline"
-              onClick={() => field.onChange(incrementTime(field.value, -15))}
+              onClick={() => {
+                field.onChange(incrementTime(field.value, -15));
+                if (handleOnChange) {
+                  handleOnChange(incrementTime(field.value, -15));
+                }
+              }}
             >
               <ChevronLeft size={16} strokeWidth={1.5} />
             </Button>
@@ -35,7 +42,8 @@ export default function AddBreakTimeField<T extends FieldValues>({
               type="time"
               value={field.value}
               onChange={(v) => {
-                handleTyping();
+                if (handleTyping) handleTyping();
+                if (handleOnChange) handleOnChange(v.target.value);
                 field.onChange(v);
               }}
               step="900"
@@ -44,7 +52,12 @@ export default function AddBreakTimeField<T extends FieldValues>({
               type="button"
               className="rounded-l-none border-l-0 px-2 h-9 text-zinc-500"
               variant="outline"
-              onClick={() => field.onChange(incrementTime(field.value, 15))}
+              onClick={() => {
+                field.onChange(incrementTime(field.value, 15));
+                if (handleOnChange) {
+                  handleOnChange(incrementTime(field.value, 15));
+                }
+              }}
             >
               <ChevronRight size={16} strokeWidth={1.5} />
             </Button>

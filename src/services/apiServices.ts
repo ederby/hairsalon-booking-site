@@ -1,3 +1,4 @@
+import { uploadImageToBucket } from "@/lib/helpers";
 import { supabase } from "./supabase";
 import {
   CategoryListType,
@@ -25,33 +26,6 @@ type CreateCategoryDataType = {
   image: string | null;
 };
 
-async function uploadImageToBucket(
-  image: File | undefined
-): Promise<string | undefined> {
-  let imagePath: string | undefined;
-
-  if (image) {
-    const imageName: string = `${Math.random()}-${image?.name}`.replace(
-      /\//g,
-      ""
-    );
-    imagePath = `${
-      import.meta.env.VITE_SUPABASE_URL as string
-    }/storage/v1/object/public/images/${imageName}`;
-
-    const { error: storageError } = await supabase.storage
-      .from("images")
-      .upload(imageName, image);
-
-    if (storageError) {
-      console.error("Category could not be edited.");
-      throw new Error("Category could not be edited.");
-    }
-  }
-
-  return imagePath;
-}
-
 export async function editCategories(
   category: CategoryEditType
 ): Promise<void> {
@@ -64,8 +38,7 @@ export async function editCategories(
       description: category.description,
       image,
     })
-    .eq("id", category.id)
-    .select();
+    .eq("id", category.id);
 
   if (error) {
     console.error("Category could not be edited.");

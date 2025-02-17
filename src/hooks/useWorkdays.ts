@@ -1,4 +1,4 @@
-import { getWorkdays } from "@/services/apiCalendars";
+import { getWorkdays } from "@/services/apiGeneral";
 import { WorkdayType } from "@/services/types";
 import { useQuery } from "@tanstack/react-query";
 

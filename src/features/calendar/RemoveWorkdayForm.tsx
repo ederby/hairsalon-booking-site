@@ -19,8 +19,8 @@ const formSchema = z.object({
   date: z.date({ required_error: "Välj ett datum" }),
 });
 
-export default function RemoveWorkingdayForm() {
-  const { fetchingStaff } = useStaff();
+export default function RemoveWorkdayForm() {
+  const { isLoadingStaff } = useStaff();
   const { currentStaffMember } = useCalendar();
   const { onDeleteWorkday, isDeletingWorkday } = useDeleteWorkday();
 
@@ -35,13 +35,14 @@ export default function RemoveWorkingdayForm() {
   });
 
   function onSubmit(data: OnSubmitType) {
+    console.log(data);
     const date = format(data.date, "yyyy-MM-dd");
     const staffID = parseInt(data.staff);
 
     onDeleteWorkday({ staffID, date });
   }
 
-  if (fetchingStaff) return <Spinner />;
+  if (isLoadingStaff) return <Spinner />;
 
   return (
     <FormProvider {...form}>

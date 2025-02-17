@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button";
 import { DialogClose } from "@/components/ui/dialog";
 import { FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useCalendar } from "@/context/CalendarContext";
-import { toast } from "@/hooks/use-toast";
 import { useDebouncedTimeValidation } from "@/hooks/useDebouncedTimeValidation";
 import { useStaff } from "@/hooks/useStaff";
 import { incrementTime } from "@/lib/helpers";
@@ -13,29 +11,38 @@ import { format } from "date-fns";
 import { CalendarPlus, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import CustomCalendar from "./CustomCalendar";
-import CustomStaffSelect from "./CustomStaffSelect";
-import { useCreateWorkday } from "./useCreateWorkday";
+import CustomCalendar from "../../features/calendar/CustomCalendar";
+import CustomStaffSelect from "../../features/calendar/CustomStaffSelect";
+import { useCreateWorkday } from "../../hooks/useCreateWorkday";
+import { useEditWorkday } from "@/features/settings/useEditWorkday";
+import { WorkdayType } from "@/services/types";
 
 type OnSubmitType = z.infer<typeof formSchema>;
+
+type AddWorkDayFormProps = {
+  currentWorkday?: WorkdayType;
+};
 
 const formSchema = z.object({
   staff: z.string().nonempty("Välj en person"),
   date: z.date({ required_error: "Välj ett datum" }),
   startTime: z.string().nonempty("Välj en starttid"),
   endTime: z.string().nonempty("Välj en sluttid"),
+  id: z.number().optional(),
 });
 
-export function AddWorkingDayForm(): JSX.Element {
-  // const [isTyping, setIsTyping] = useState(false);
-  const { fetchingStaff } = useStaff();
+export function AddWorkDayForm({
+  currentWorkday,
+}: AddWorkDayFormProps): JSX.Element {
+  const { isLoadingStaff } = useStaff();
   const { onCreateWorkday, isCreatingWorkday } = useCreateWorkday();
-  const { currentStaffMember, filteredEvents } = useCalendar();
+  const { onEditWorkday, isEditingWorkday } = useEditWorkday();
   const initialValues = {
-    staff: currentStaffMember?.id.toString() || "",
-    date: new Date(),
-    startTime: "09:00",
-    endTime: "17:00",
+    staff: currentWorkday?.staffID.toString() || "",
+    date: currentWorkday?.date ? new Date(currentWorkday.date) : new Date(),
+    startTime: currentWorkday?.startTime || "09:00",
+    endTime: currentWorkday?.endTime || "17:00",
+    id: currentWorkday?.id || 0,
   };
   const form = useForm<OnSubmitType>({
     resolver: zodResolver(formSchema),
@@ -50,15 +57,7 @@ export function AddWorkingDayForm(): JSX.Element {
   });
 
   function onSubmit(data: OnSubmitType) {
-    const workdayAlreadyExists = filteredEvents.some((event) => {
-      return (
-        format(new Date(event.StartTime), "yyyy-MM-dd") ===
-          format(data.date, "yyyy-MM-dd") &&
-        event.Subject === "Start av dagen" &&
-        event.ResourceId === +data.staff
-      );
-    });
-
+    console.log(data);
     const workday = {
       date: format(data.date, "yyyy-MM-dd"),
       staffID: +data.staff,
@@ -66,18 +65,14 @@ export function AddWorkingDayForm(): JSX.Element {
       endTime: data.endTime,
     };
 
-    if (workdayAlreadyExists) {
-      toast({
-        title: "Obs!",
-        description: "Arbetsdagen är redan tillagd",
-        onSuccess: false,
-      });
-    } else {
+    if (data.id === 0) {
       onCreateWorkday(workday);
+    } else {
+      onEditWorkday({ ...workday, id: data.id ?? 0 });
     }
   }
 
-  if (fetchingStaff) return <Spinner />;
+  if (isLoadingStaff) return <Spinner />;
 
   return (
     <FormProvider {...form}>
@@ -173,18 +168,30 @@ export function AddWorkingDayForm(): JSX.Element {
           </div>
         </div>
 
+        <Controller
+          name="id"
+          control={form.control}
+          render={({ field }) => <input type="hidden" {...field} />}
+        />
+
         <div className="flex justify-end gap-2">
           <DialogClose asChild>
             <Button variant="outline">Stäng</Button>
           </DialogClose>
           <DialogClose asChild>
             <Button disabled={!form.formState.isValid} type="submit">
-              {isCreatingWorkday ? (
+              {isCreatingWorkday || isEditingWorkday ? (
                 <Loader2 className="animate-spin" />
               ) : (
                 <CalendarPlus strokeWidth={1.5} />
               )}
-              {isCreatingWorkday ? "Lägger till" : "Lägg till"}
+              {isCreatingWorkday || isEditingWorkday
+                ? currentWorkday?.id
+                  ? "Uppdaterar"
+                  : "Lägger till"
+                : currentWorkday?.id
+                ? "Uppdatera"
+                : "Lägg till"}
             </Button>
           </DialogClose>
         </div>

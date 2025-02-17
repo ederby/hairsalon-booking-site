@@ -1,5 +1,5 @@
 import { useBookings } from "@/features/calendar/useBookings";
-import { useWorkdays } from "@/features/calendar/useWorkdays";
+import { useWorkdays } from "@/hooks/useWorkdays";
 import { useStaff } from "@/hooks/useStaff";
 import {
   CalendarStaffMembers,
@@ -18,7 +18,7 @@ type CalendarContextType = {
   currentBookingInfoInitialState: EditBookingType;
   currentBookingInfo: React.MutableRefObject<EditBookingType>;
   currentStaffMember: StaffType | undefined;
-  fetchingStaff: boolean;
+  isLoadingStaff: boolean;
   isLoadingBookings: boolean;
 };
 
@@ -49,7 +49,7 @@ export default function CalendarProvider({
 }: {
   children: React.ReactNode;
 }): JSX.Element {
-  const { staff, fetchingStaff } = useStaff();
+  const { staff, isLoadingStaff } = useStaff();
   const { bookings, isLoadingBookings } = useBookings();
   const { workdays } = useWorkdays();
 
@@ -98,7 +98,6 @@ export default function CalendarProvider({
       return {
         text: person.name,
         id: person.id,
-        schedule: person.schedule,
       };
     });
   }, [staff]);
@@ -158,7 +157,7 @@ export default function CalendarProvider({
         currentBookingInfoInitialState,
         currentBookingInfo,
         currentStaffMember,
-        fetchingStaff,
+        isLoadingStaff,
         isLoadingBookings,
       }}
     >

@@ -16,7 +16,7 @@ export default function BookingInfo({
   booking,
 }: BookingInfoProps): JSX.Element {
   const { setCurrentBookingID } = useBookingHistory();
-  const { staff, fetchingStaff } = useStaff();
+  const { staff, isLoadingStaff } = useStaff();
   const currentStaff = staff?.find((s) => s.id === booking?.staff_id);
   const outdated =
     (booking?.selectedDate &&
@@ -24,13 +24,13 @@ export default function BookingInfo({
     (booking?.selectedDate &&
       booking.selectedDate !== format(new Date(), "yyyy-MM-dd"));
 
-  if (fetchingStaff) return <Spinner />;
+  if (isLoadingStaff) return <Spinner />;
 
   return (
     <div>
       <div className="flex gap-2">
         <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-          Bokningsinformation #{booking?.id}
+          Bokning #{booking?.id}
         </h3>
         <div
           className={`inline-flex items-center gap-1.5 py-1 pl-3 pr-4 rounded-full ${

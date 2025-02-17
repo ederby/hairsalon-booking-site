@@ -20,7 +20,7 @@ import {
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
-import ServiceEditForm from "./ServiceEditForm";
+import AddServiceForm from "./AddServiceForm";
 import ServiceListItem from "./ServiceListItem";
 import { useCreateService } from "./useCreateService";
 import { useServices } from "./useServices";
@@ -130,7 +130,7 @@ export default function ServiceList({ id }: ServiceListProps): JSX.Element {
         open={openResponsiveDialog}
         setOpen={setOpenResponsiveDialog}
       >
-        <ServiceEditForm onHandleService={onCreateService} categoryID={id} />
+        <AddServiceForm onHandleService={onCreateService} categoryID={id} />
       </ResponsiveDialog>
     </div>
   );

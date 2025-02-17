@@ -1,6 +1,34 @@
+import { supabase } from "@/services/supabase";
 import { ExtraservicesType } from "@/services/types";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+
+export async function uploadImageToBucket(
+  image: File | undefined
+): Promise<string | undefined> {
+  let imagePath: string | undefined;
+
+  if (image) {
+    const imageName: string = `${Math.random()}-${image?.name}`.replace(
+      /\//g,
+      ""
+    );
+    imagePath = `${
+      import.meta.env.VITE_SUPABASE_URL as string
+    }/storage/v1/object/public/images/${imageName}`;
+
+    const { error: storageError } = await supabase.storage
+      .from("images")
+      .upload(imageName, image);
+
+    if (storageError) {
+      console.error("Category could not be edited.");
+      throw new Error("Category could not be edited.");
+    }
+  }
+
+  return imagePath;
+}
 
 export function reduceExtraServicesDuration(
   extraServices: ExtraservicesType[] | undefined

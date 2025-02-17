@@ -166,11 +166,12 @@ export function bookingHistoryColumns(
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
+        const bookingID = row.original.id;
         return (
           <DropdownMenuCustom className="border-0 bg-transparent hover:bg-transparent">
             <DropdownMenuItem
               onSelect={() => {
-                setCurrentBookingID(row.original.id, true);
+                setCurrentBookingID(bookingID, true);
                 setOpenDialog(true);
               }}
             >
@@ -179,7 +180,7 @@ export function bookingHistoryColumns(
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() => {
-                setCurrentBookingID(row.original.id, false);
+                setCurrentBookingID(bookingID, false);
                 setOpenDialog(true);
               }}
             >
@@ -188,7 +189,7 @@ export function bookingHistoryColumns(
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() => {
-                setCurrentBookingID(row.original.id, false);
+                setCurrentBookingID(bookingID, false);
                 setOpenAlertDialog(true);
               }}
             >

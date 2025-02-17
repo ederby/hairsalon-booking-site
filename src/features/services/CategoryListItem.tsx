@@ -15,7 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { CircleX, GripVertical, Pencil } from "lucide-react";
 import { useState } from "react";
 import ListItemSkeleton from "../../components/layout/ListItemSkeleton";
-import CategoryEditForm from "./CategoryEditForm";
+import AddCategoryForm from "./AddCategoryForm";
 import ServiceList from "./ServiceList";
 import { useDeleteCategory } from "./useDeleteCategory";
 import { useEditCategories } from "./useEditCategories";
@@ -103,7 +103,7 @@ export default function CategoryListItem({
         open={openResponsiveDialog}
         setOpen={setOpenResponsiveDialog}
       >
-        <CategoryEditForm
+        <AddCategoryForm
           categoryToEdit={{ title, description, id }}
           onHandleCategory={onEditCategory}
         />

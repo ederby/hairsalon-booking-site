@@ -65,7 +65,7 @@ export default function BookingHistoryDataTable(): JSX.Element {
     "all" | "canceled" | "expired" | "booked" | ""
   >("");
 
-  const { fetchingStaff } = useStaff();
+  const { isLoadingStaff } = useStaff();
   const { onDeleteBooking } = useDeleteBooking();
   const {
     currentBookingID,
@@ -86,8 +86,7 @@ export default function BookingHistoryDataTable(): JSX.Element {
           service: booking.service?.title,
           status: booking.canceled
             ? "Avbokad"
-            : booking.selectedDate < format(new Date(), "yyyy-MM-dd") ||
-              booking.selectedDate !== format(new Date(), "yyyy-MM-dd")
+            : booking.selectedDate < format(new Date(), "yyyy-MM-dd")
             ? "Utgången"
             : "Bokad",
           customerName: booking.guestInfo.name,
@@ -169,7 +168,7 @@ export default function BookingHistoryDataTable(): JSX.Element {
   const { rowsById } = table.getRowModel();
   const totalResults = Object.keys(rowsById).length;
 
-  if (fetchingStaff || isLoadingBookings) return <Spinner />;
+  if (isLoadingStaff || isLoadingBookings) return <Spinner />;
 
   return (
     <>

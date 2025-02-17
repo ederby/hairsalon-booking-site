@@ -22,7 +22,7 @@ import {
 import { Plus } from "lucide-react";
 import ContentHeader from "../../components/layout/ContentHeader";
 import { Accordion } from "../../components/ui/accordion";
-import CategoryEditForm from "./CategoryEditForm";
+import AddCategoryForm from "./AddCategoryForm";
 import CategoryListItem from "./CategoryListItem";
 import { useChangeOrderCategories } from "./useChangeOrderCategories";
 import { useCreateCategory } from "./useCreateCategory";
@@ -97,7 +97,7 @@ export default function CategoryList({
                 </Button>
               }
             >
-              <CategoryEditForm onHandleCategory={onCreateCategory} />
+              <AddCategoryForm onHandleCategory={onCreateCategory} />
             </ResponsiveDialog>
           </ContentHeader>
 

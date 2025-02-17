@@ -31,7 +31,7 @@ import { CalendarPlus, Loader2 } from "lucide-react";
 import { useMemo } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import AddBreakTimeField from "./AddBreakTimeField";
+import TimePickerField from "../../components/layout/TimePickerField";
 import CustomCalendar from "./CustomCalendar";
 import CustomStaffSelect from "./CustomStaffSelect";
 import { useCreateBreak } from "./useCreateBreak";
@@ -51,7 +51,7 @@ const formSchema = z.object({
 });
 
 export default function AddBreakForm(): JSX.Element {
-  const { fetchingStaff } = useStaff();
+  const { isLoadingStaff } = useStaff();
   const { currentBookingInfo, currentStaffMember } = useCalendar();
   const bookingInfo = currentBookingInfo.current;
 
@@ -103,20 +103,7 @@ export default function AddBreakForm(): JSX.Element {
     endTimeField: "endTime",
   });
 
-  // const watchStartTime = form.watch("startTime");
-  // const watchEndTime = form.watch("endTime");
-  // useEffect(() => {
-  //   if (watchStartTime && watchEndTime) {
-  //     const startTime = parse(watchStartTime, "HH:mm", new Date());
-  //     const endTime = parse(watchEndTime, "HH:mm", new Date());
-
-  //     if (startTime >= endTime) {
-  //       form.setValue("endTime", format(addMinutes(startTime, 15), "HH:mm"));
-  //     }
-  //   }
-  // }, [watchStartTime, watchEndTime, form]);
-
-  if (fetchingStaff) return <Spinner />;
+  if (isLoadingStaff) return <Spinner />;
 
   return (
     <FormProvider {...form}>
@@ -153,16 +140,16 @@ export default function AddBreakForm(): JSX.Element {
         <div className="space-y-2">
           <FormLabel htmlFor="startTime">Tid</FormLabel>
           <div className="flex w-full">
-            <AddBreakTimeField
+            <TimePickerField
               control={form.control}
               name="startTime"
-              handleTyping={handleTyping}
+              handleOnChange={handleTyping}
             />
             <span className="mx-2 mt-1">{"–"}</span>
-            <AddBreakTimeField
+            <TimePickerField
               control={form.control}
               name="endTime"
-              handleTyping={handleTyping}
+              handleOnChange={handleTyping}
             />
           </div>
         </div>

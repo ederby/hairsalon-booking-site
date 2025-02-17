@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { BookingType, BreakType, ServicesType, WorkdayType } from "./types";
+import { BookingType, BreakType, ServicesType } from "./types";
 
 type EditNewBookingType = {
   booking: Omit<BookingType, "id" | "created_at" | "canceled" | "break">;
@@ -140,29 +140,7 @@ export async function editBreak({
   }
 }
 
-export async function createWorkday(
-  workday: Omit<WorkdayType, "id">
-): Promise<void> {
-  const { error } = await supabase.from("workdays").insert([{ ...workday }]);
-
-  if (error) {
-    console.error("Arbetsdagen kunde inte skapas.");
-    throw new Error("Arbetsdagen kunde inte skapas.");
-  }
-}
-
-export async function getWorkdays(): Promise<WorkdayType[]> {
-  const { data, error } = await supabase.from("workdays").select("*");
-
-  if (error) {
-    console.error("Arbetsdagarna kunde inte hämtas.");
-    throw new Error("Arbetsdagarna kunde inte hämtas.");
-  }
-
-  return data;
-}
-
-export async function deleteWorkday({
+export async function deleteWorkdayByDate({
   staffID,
   date,
 }: {

@@ -11,7 +11,7 @@ import { useExtraServices } from "./useExtraServices";
 import ResponsiveDialog from "@/components/layout/ResponsiveDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import ExtraServiceEditForm from "./ExtraServiceEditForm";
+import AddExtraserviceForm from "./AddExtraserviceForm";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 export default function ExtraServiceTable() {
@@ -32,7 +32,7 @@ export default function ExtraServiceTable() {
             </Button>
           }
         >
-          <ExtraServiceEditForm />
+          <AddExtraserviceForm />
         </ResponsiveDialog>
       </ContentHeader>
       <Table>

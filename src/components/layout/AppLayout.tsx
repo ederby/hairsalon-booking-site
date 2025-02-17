@@ -3,6 +3,7 @@ import { SidebarProvider } from "../ui/sidebar";
 import AppSidebar from "./AppSidebar";
 import Header from "./Header";
 import { Toaster } from "../ui/toaster";
+import Wrapper from "./Wrapper";
 
 export default function AppLayout() {
   return (
@@ -10,9 +11,9 @@ export default function AppLayout() {
       <AppSidebar />
       <div className="flex flex-col w-full">
         <Header />
-        <main>
+        <Wrapper>
           <Outlet />
-        </main>
+        </Wrapper>
       </div>
       <Toaster />
     </SidebarProvider>

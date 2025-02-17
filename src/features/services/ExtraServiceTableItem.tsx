@@ -7,7 +7,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { ExtraservicesType } from "@/services/types";
 import { CircleX, EyeIcon, EyeOff, Pencil } from "lucide-react";
 import { useState } from "react";
-import ExtraServiceEditForm from "./ExtraServiceEditForm";
+import AddExtraserviceForm from "./AddExtraserviceForm";
 import { useDeleteExtraService } from "./useDeleteExtraService";
 import { useToggleExtraService } from "./useToggleExtraService";
 
@@ -95,7 +95,7 @@ export default function ExtraServiceTableItem({
           open={openResponsiveDialog}
           setOpen={setOpenResponsiveDialog}
         >
-          <ExtraServiceEditForm extraServiceToEdit={extraService} />
+          <AddExtraserviceForm extraServiceToEdit={extraService} />
         </ResponsiveDialog>
       </TableCell>
     </TableRow>

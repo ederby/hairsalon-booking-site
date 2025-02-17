@@ -1,5 +1,11 @@
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "./supabase";
-import { CategoryListType, ExtraservicesType, StaffType } from "./types";
+import {
+  CategoryListType,
+  ExtraservicesType,
+  StaffType,
+  WorkdayType,
+} from "./types";
 
 export async function getStaff(): Promise<StaffType[]> {
   const { data, error } = await supabase
@@ -43,4 +49,45 @@ export async function getExtraServices(): Promise<ExtraservicesType[]> {
   }
 
   return data;
+}
+
+export async function getWorkdays(): Promise<WorkdayType[]> {
+  const { data, error } = await supabase
+    .from("workdays")
+    .select("*")
+    .order("date", { ascending: true });
+
+  if (error) {
+    console.error("Arbetsdagarna kunde inte hämtas.");
+    throw new Error("Arbetsdagarna kunde inte hämtas.");
+  }
+
+  return data;
+}
+
+export async function createWorkday(
+  workday: Omit<WorkdayType, "id">
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("workdays")
+    .select("*")
+    .eq("staffID", workday.staffID)
+    .eq("date", workday.date);
+
+  if (data?.length === 0) {
+    const { error } = await supabase.from("workdays").insert([{ ...workday }]);
+
+    if (error) {
+      console.error("Arbetsdagen kunde inte skapas.");
+      throw new Error("Arbetsdagen kunde inte skapas.");
+    }
+    return true;
+  } else {
+    toast({
+      title: "Obs!",
+      description: "Arbetsdagen är redan tillagd",
+      onSuccess: false,
+    });
+    return false;
+  }
 }

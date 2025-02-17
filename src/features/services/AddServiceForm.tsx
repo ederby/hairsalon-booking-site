@@ -15,7 +15,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useServices } from "./useServices";
 
-type ServiceEditFormProps = {
+type AddServiceFormProps = {
   serviceToEdit?: ServicesType;
   categoryID: number;
   onHandleService: (
@@ -56,11 +56,11 @@ const defaultService: FormSchema = {
   order: 0,
 };
 
-export default function ServiceEditForm({
+export default function AddServiceForm({
   serviceToEdit = defaultService,
   categoryID,
   onHandleService,
-}: ServiceEditFormProps): JSX.Element {
+}: AddServiceFormProps): JSX.Element {
   const { id: isEditService, ...editValues } = serviceToEdit;
   const isEditSession = Boolean(isEditService);
   const { services } = useServices(categoryID);

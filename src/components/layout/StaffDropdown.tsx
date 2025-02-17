@@ -5,30 +5,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCalendar } from "@/context/CalendarContext";
+import { useStaff } from "@/hooks/useStaff";
 
-export default function BookingStaffDropdown(): JSX.Element {
-  const { selectedStaff, setSelectedStaff, staffMembers } = useCalendar();
+type StaffMember = {
+  selectedStaff: number;
+  onSelect: (value: number) => void;
+};
 
-  function handleCheckboxChange(id: number) {
-    setSelectedStaff(id);
-  }
+export default function StaffDropdown({
+  selectedStaff,
+  onSelect,
+}: StaffMember): JSX.Element {
+  const { staff } = useStaff();
 
   return (
     <div className="min-w-48">
       <Select
         value={selectedStaff?.toString()}
         onValueChange={(e) => {
-          handleCheckboxChange(+e);
+          onSelect(+e);
         }}
       >
         <SelectTrigger>
           <SelectValue placeholder="Välj en person" />
         </SelectTrigger>
         <SelectContent>
-          {staffMembers?.map((staffMember) => (
+          {staff?.map((staffMember) => (
             <SelectItem key={staffMember.id} value={staffMember.id.toString()}>
-              <span>{staffMember.text}</span>
+              <span>{staffMember.name}</span>
             </SelectItem>
           ))}
         </SelectContent>

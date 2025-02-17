@@ -35,9 +35,9 @@ import {
 } from "@syncfusion/ej2-react-schedule";
 import { format } from "date-fns";
 import { useEffect, useRef, useState } from "react";
+import StaffDropdown from "../../components/layout/StaffDropdown";
 import AddBookingForm from "./AddBookingForm";
 import AddBreakForm from "./AddBreakForm";
-import BookingPersonelDropdown from "./BookingStaffDropdown";
 import CalendarFeatures from "./CalendarFeatures";
 import SchedulerContent from "./SchedulerContent";
 import SchedulerFooter from "./SchedulerFooter";
@@ -72,8 +72,10 @@ export default function Schedule(): JSX.Element {
     filteredEvents,
     currentBookingInfo,
     currentBookingInfoInitialState,
-    fetchingStaff,
+    isLoadingStaff,
     isLoadingBookings,
+    selectedStaff,
+    setSelectedStaff,
   } = useCalendar();
 
   function eventTemplate(props: EventTemplate) {
@@ -203,12 +205,15 @@ export default function Schedule(): JSX.Element {
     }
   }
 
-  if (fetchingStaff || isLoadingBookings) return <Spinner />;
+  if (isLoadingStaff || isLoadingBookings) return <Spinner />;
 
   return (
     <>
       <div className="flex justify-between mb-2">
-        <BookingPersonelDropdown />
+        <StaffDropdown
+          selectedStaff={selectedStaff}
+          onSelect={setSelectedStaff}
+        />
         <div className="flex space-x-2">
           <CalendarFeatures />
         </div>

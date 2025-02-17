@@ -9,7 +9,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CircleX, GripVertical, Pencil } from "lucide-react";
 import { useState } from "react";
-import ServiceEditForm from "./ServiceEditForm";
+import AddServiceForm from "./AddServiceForm";
 import { useDeleteService } from "./useDeleteService";
 import { useEditService } from "./useEditService";
 import { useToggleService } from "./useToggleService";
@@ -82,7 +82,7 @@ export default function ServiceListItem({
             open={openResponsiveDialog}
             setOpen={setOpenResponsiveDialog}
           >
-            <ServiceEditForm
+            <AddServiceForm
               serviceToEdit={service}
               onHandleService={onEditService}
               categoryID={-1}

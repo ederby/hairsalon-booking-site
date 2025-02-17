@@ -41,9 +41,9 @@ export type StaffType = {
   name: string;
   role: string;
   image: string;
-  schedule: {
-    [date: string]: string[];
-  };
+  email: string;
+  phone: string;
+  isActive: boolean;
 };
 
 export type ExtraservicesType = {
@@ -153,9 +153,6 @@ export interface EventTemplate {
 export type CalendarStaffMembers = {
   text: string;
   id: number;
-  schedule: {
-    [date: string]: string[];
-  };
 };
 
 export type WorkdayType = {

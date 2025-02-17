@@ -68,7 +68,7 @@ export default function AddBookingForm({
 
   const { services, isLoadingServices } = useServices();
   const { categories, isLoadingCategories } = useCategories();
-  const { fetchingStaff } = useStaff();
+  const { isLoadingStaff } = useStaff();
   const { extraServices, isLoadingExtraServices } = useExtraServices();
   const { onEditBooking, isEditingBooking } = useEditBooking();
 
@@ -187,7 +187,7 @@ export default function AddBookingForm({
     isLoadingServices ||
     isLoadingCategories ||
     isLoadingExtraServices ||
-    fetchingStaff
+    isLoadingStaff
   ) {
     return <Spinner />;
   }

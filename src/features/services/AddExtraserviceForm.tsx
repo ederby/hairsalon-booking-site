@@ -25,7 +25,7 @@ const formSchema = z.object({
   categoryIDs: z.array(z.number()).nonempty("Välj minst en kategori"),
 });
 
-type ExtraServiceEditFormProps = {
+type AddExtraserviceFormProps = {
   extraServiceToEdit?: {
     id?: number;
     title?: string;
@@ -36,9 +36,9 @@ type ExtraServiceEditFormProps = {
   };
 };
 
-export default function ExtraServiceEditForm({
+export default function AddExtraserviceForm({
   extraServiceToEdit = {},
-}: ExtraServiceEditFormProps): JSX.Element {
+}: AddExtraserviceFormProps): JSX.Element {
   const [categoriesActive, setCategoriesActive] = useState<number[]>(
     extraServiceToEdit.categoryIDs || []
   );

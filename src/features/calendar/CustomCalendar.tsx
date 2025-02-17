@@ -17,6 +17,8 @@ type CustomCalendarProps<T extends FieldValues> = {
   name: Path<T>;
   className?: string;
   label?: string;
+  onSelect?: (selectedDate: Date | undefined) => void;
+  unavailabeDates?: Date[];
 };
 
 export default function CustomCalendar<T extends FieldValues>({
@@ -24,6 +26,8 @@ export default function CustomCalendar<T extends FieldValues>({
   name,
   className = "w-full flex flex-col space-y-3",
   label = "Datum",
+  onSelect,
+  unavailabeDates = [],
 }: CustomCalendarProps<T>): JSX.Element {
   return (
     <div className={className}>
@@ -54,10 +58,14 @@ export default function CustomCalendar<T extends FieldValues>({
                 mode="single"
                 selected={field.value || new Date()}
                 onSelect={(selectedDate) => {
+                  if (onSelect) {
+                    onSelect(selectedDate);
+                  }
                   field.onChange(selectedDate);
                 }}
                 initialFocus
                 locale={sv}
+                disabled={unavailabeDates}
               />
             </PopoverContent>
           </Popover>

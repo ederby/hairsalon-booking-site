@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import { FC, useState } from "react";
 import AddBreakForm from "./AddBreakForm";
-import RemoveWorkingdayForm from "./RemoveWorkingdayForm";
-import { AddWorkingDayForm } from "./AddWorkingdayForm";
+import RemoveWorkdayForm from "./RemoveWorkdayForm";
+import { AddWorkDayForm } from "@/components/layout/AddWorkdayForm";
 
 interface SetupConfigType {
   [key: number]: {
@@ -29,11 +29,11 @@ interface SetupConfigType {
 const setupConfig: SetupConfigType = {
   1: {
     title: "Lägg till arbetsdag",
-    component: AddWorkingDayForm,
+    component: AddWorkDayForm,
   },
   2: {
     title: "Ta bort arbetsdag",
-    component: RemoveWorkingdayForm,
+    component: RemoveWorkdayForm,
   },
   3: {
     title: "Lägg till frånvaro",
