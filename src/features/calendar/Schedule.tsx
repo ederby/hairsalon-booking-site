@@ -43,6 +43,7 @@ import SchedulerContent from "./SchedulerContent";
 import SchedulerFooter from "./SchedulerFooter";
 import SchedulerHeader from "./SchedulerHeader";
 import { useCancelBooking } from "./useCancelBooking";
+import { useBookingSettings } from "../settings/useBookingSettings";
 
 loadCldr(svNumbers, svCalendars, svTimeZoneNames);
 setCulture("sv");
@@ -77,6 +78,7 @@ export default function Schedule(): JSX.Element {
     selectedStaff,
     setSelectedStaff,
   } = useCalendar();
+  const { bookingSettings, isLoadingBookingSettings } = useBookingSettings();
 
   function eventTemplate(props: EventTemplate) {
     const formattedTime = `${format(
@@ -112,13 +114,13 @@ export default function Schedule(): JSX.Element {
     args.element.style.backgroundColor = isBreak
       ? "#d4d4d8"
       : subject === "Start av dagen" || subject === "Slutet av dagen"
-      ? "#FACC15"
+      ? "#0D9488"
       : "#CCFBF1";
 
     args.element.style.borderColor = isBreak
       ? "#d4d4d8"
       : subject === "Start av dagen" || subject === "Slutet av dagen"
-      ? "#FACC15"
+      ? "#0D9488"
       : "#CCFBF1";
   }
 
@@ -205,7 +207,8 @@ export default function Schedule(): JSX.Element {
     }
   }
 
-  if (isLoadingStaff || isLoadingBookings) return <Spinner />;
+  if (isLoadingStaff || isLoadingBookings || isLoadingBookingSettings)
+    return <Spinner />;
 
   return (
     <>
@@ -223,11 +226,11 @@ export default function Schedule(): JSX.Element {
         ref={scheduleRef}
         locale="sv"
         selectedDate={calendarDate}
-        startHour="08:00"
-        endHour="19:00"
+        startHour={bookingSettings?.calendarViewHours?.startTime || "08:00"}
+        endHour={bookingSettings?.calendarViewHours?.endTime || "18:00"}
         eventSettings={eventSettings}
         eventRendered={onEventRendered}
-        workDays={[1, 2, 3, 4, 5, 6]}
+        workDays={bookingSettings?.calendarViewDays || [0, 1, 2, 3, 4, 5, 6]}
         popupOpen={onPopupOpen}
         currentView="WorkWeek"
         quickInfoTemplates={{

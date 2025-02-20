@@ -34,7 +34,7 @@ export default function AlertDialogCustom({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Tillbaka</AlertDialogCancel>
+          <AlertDialogCancel>Avbryt</AlertDialogCancel>
           <AlertDialogAction
             onClick={onClick}
             className="bg-red-600 hover:bg-red-500"

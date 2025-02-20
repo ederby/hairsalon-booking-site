@@ -57,7 +57,6 @@ export function AddWorkDayForm({
   });
 
   function onSubmit(data: OnSubmitType) {
-    console.log(data);
     const workday = {
       date: format(data.date, "yyyy-MM-dd"),
       staffID: +data.staff,
@@ -80,7 +79,15 @@ export function AddWorkDayForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-5 min-w-full"
       >
-        <CustomStaffSelect control={form.control} name="staff" />
+        {initialValues.id === 0 ? (
+          <CustomStaffSelect control={form.control} name="staff" />
+        ) : (
+          <Controller
+            name="staff"
+            control={form.control}
+            render={({ field }) => <input type="hidden" {...field} />}
+          />
+        )}
         <CustomCalendar control={form.control} name="date" />
 
         <div className="space-y-2">

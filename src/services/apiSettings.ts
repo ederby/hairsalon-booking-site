@@ -1,6 +1,6 @@
 import { uploadImageToBucket } from "@/lib/helpers";
 import { supabase } from "./supabase";
-import { StaffType, WorkdayType } from "./types";
+import { BookingSettingsType, StaffType, WorkdayType } from "./types";
 
 type EditStaffType = Omit<StaffType, "image" | "created_at" | "isActive"> & {
   image?: File | undefined;
@@ -57,5 +57,40 @@ export async function editWorkday(workday: WorkdayType): Promise<void> {
   if (error) {
     console.error("Arbetsdagen kunde inte uppdateras.");
     throw new Error("Arbetsdagen kunde inte uppdateras.");
+  }
+}
+
+export async function deleteWorkdays(id: number[]): Promise<void> {
+  const { error } = await supabase.from("workdays").delete().in("id", id);
+
+  if (error) {
+    console.error("Arbetsdagarna kunde inte raderas.");
+    throw new Error("Arbetsdagarna kunde inte raderas.");
+  }
+}
+
+export async function getBookingSettings(): Promise<BookingSettingsType> {
+  const { data, error } = await supabase.from("booking_settings").select();
+
+  if (error) {
+    console.error("Inställningarna kunde inte hämtas.");
+    throw new Error("Inställningarna kunde inte hämtas.");
+  }
+
+  return data.at(0);
+}
+
+export async function editBookingSettings(
+  settings: BookingSettingsType
+): Promise<void> {
+  const { id, ...newSettings } = settings;
+  const { error } = await supabase
+    .from("booking_settings")
+    .update({ ...newSettings })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Inställningarna kunde inte uppdateras.");
+    throw new Error("Inställningarna kunde inte uppdateras.");
   }
 }

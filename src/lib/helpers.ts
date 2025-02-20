@@ -54,10 +54,11 @@ export const formatCustomDate = (date: Date) => {
   if (!date || isNaN(date.getTime())) {
     return "Invalid date";
   }
+  const dayOfWeek = capitalizeFirstLetter(format(date, "EEE", { locale: sv }));
   const day = format(date, "d", { locale: sv });
   const month = format(date, "MMMM", { locale: sv });
   const year = format(date, "yyyy", { locale: sv });
-  return `${day} ${month}, ${year}`;
+  return `${dayOfWeek} ${day} ${month}, ${year}`;
 };
 
 export function isBeforeTime(time: string, compareTime: string) {
@@ -82,4 +83,8 @@ export function isAfterTime(time: string, compareTime: string) {
   } else {
     return false;
   }
+}
+
+export function capitalizeFirstLetter(string: string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
 }

@@ -1,5 +1,5 @@
 import { useToast } from "@/hooks/use-toast";
-import { toggleActiveStaff } from "@/services/apiStaff";
+import { toggleActiveStaff } from "@/services/apiSettings";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useToggleActiveStaff() {

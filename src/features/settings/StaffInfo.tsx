@@ -77,7 +77,7 @@ export default function StaffInfo({
 
       <div>
         <div className="flex justify-between items-center">
-          <span className="text-sm">Aktiv</span>
+          <span className="text-sm font-semibold">Aktiv</span>
           <Switch
             checked={currentStaff?.isActive}
             onCheckedChange={(e) =>

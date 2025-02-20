@@ -162,3 +162,13 @@ export type WorkdayType = {
   startTime: string;
   endTime: string;
 };
+
+export type BookingSettingsType = {
+  id: number;
+  timeslotInterval: number;
+  calendarViewHours: {
+    endTime: string;
+    startTime: string;
+  };
+  calendarViewDays: number[];
+};

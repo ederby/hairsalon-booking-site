@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { capitalizeFirstLetter } from "@/lib/helpers";
 import { WorkdayType } from "@/services/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { CalendarClock, CircleX, MoreVertical } from "lucide-react";
@@ -15,6 +17,28 @@ export const staffWorkdayColumns = (
   setCurrentWorkdayID: (workdayID: number) => void
 ): ColumnDef<WorkdayType>[] => [
   {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     accessorKey: "date",
     header: "Datum",
   },
@@ -23,8 +47,10 @@ export const staffWorkdayColumns = (
     header: "Veckodag",
     cell: ({ row }) => {
       const date = new Date(row.original.date);
-      const weekday = date.toLocaleDateString("sv-SE", { weekday: "long" });
-      return <div>{weekday.charAt(0).toUpperCase() + weekday.slice(1)}</div>;
+      const weekday = capitalizeFirstLetter(
+        date.toLocaleDateString("sv-SE", { weekday: "long" })
+      );
+      return <div>{weekday}</div>;
     },
   },
   {
