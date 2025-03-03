@@ -8,7 +8,7 @@ export default function CustomSidebarTrigger() {
 
   return (
     <div
-      className="flex items-center gap-1 cursor-pointer hover:text-teal-800"
+      className="flex items-center gap-1 cursor-pointer hover:text-[var(--primary-800)]"
       onClick={toggleSidebar}
     >
       {open ? (

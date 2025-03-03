@@ -27,17 +27,17 @@ export default function SchedulerHeader({
   return (
     <div
       className={`py-2 px-4 flex items-center ${
-        bookingInfo.Break ? "bg-zinc-600" : "bg-teal-600"
+        bookingInfo.Break ? "bg-zinc-600" : "bg-[var(--primary-600)]"
       } ${isWorkday ? "justify-end" : "justify-between"}`}
     >
       {!isWorkday && (
-        <span className="font-semibold text-teal-50">
+        <span className="font-semibold text-[var(--primary-50)]">
           {bookingInfo.Break ? "Skapad" : "Bokad"} {formattedCreatedDate}
         </span>
       )}
       <X
         size={16}
-        className="cursor-pointer text-teal-50"
+        className="cursor-pointer text-[var(--primary-50)]"
         onClick={closePopup}
       />
     </div>

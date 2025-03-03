@@ -64,8 +64,8 @@ export default function CategoryListItem({
       onMouseEnter={handleOnMouseEnter}
       value={title}
       className={`${openAlertDialog ? "bg-red-100" : ""} ${
-        openResponsiveDialog ? "bg-teal-100" : ""
-      } hover:bg-teal-50 relative data-[state=open]:bg-zinc-50 px-2 border-b last:border-b-0`}
+        openResponsiveDialog ? "bg-[var(--primary-100)]" : ""
+      } hover:bg-[var(--primary-50)] relative data-[state=open]:bg-zinc-50 px-2 border-b last:border-b-0`}
     >
       <AccordionTrigger>
         {isEditingCategory ? (
@@ -98,7 +98,7 @@ export default function CategoryListItem({
       </AccordionTrigger>
 
       <ResponsiveDialog
-        className="absolute right-10 top-6 h-8 w-8 rounded bg-zinc-100 text-zinc-500 hover:bg-teal-600 hover:text-teal-50 px-[10px]"
+        className="absolute right-10 top-6 h-8 w-8 rounded bg-zinc-100 text-zinc-500 hover:bg-[var(--primary-600)] hover:text-[var(--primary-50)] px-[10px]"
         title={`Redigera "${title}"`}
         open={openResponsiveDialog}
         setOpen={setOpenResponsiveDialog}

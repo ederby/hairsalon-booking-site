@@ -18,6 +18,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCategories } from "@/services/apiGeneral";
+import { useCompanySettings } from "@/features/settings/useCompanySettings";
 
 type LinksType = {
   title: string;
@@ -55,6 +56,7 @@ const links: LinksType = [
 export default function AppSidebar() {
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { companySettings, isLoadingCompanySettings } = useCompanySettings();
 
   function handleOnMouseEnter(preFetch: string | undefined) {
     queryClient.prefetchQuery({
@@ -67,7 +69,11 @@ export default function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>NAMN PÅ FÖRETAG</SidebarGroupLabel>
+          <SidebarGroupLabel>
+            {isLoadingCompanySettings
+              ? "Laddar..."
+              : companySettings?.companyName.toUpperCase()}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {links.map((link) => (

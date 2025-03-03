@@ -45,7 +45,7 @@ export default function ServiceListItem({
       style={style}
       className={`${
         openResponsiveDialog
-          ? "bg-teal-100"
+          ? "bg-[var(--primary-100)]"
           : openAlertDialog
           ? "bg-red-100"
           : "odd:bg-white"
@@ -77,7 +77,7 @@ export default function ServiceListItem({
       {service.isActive && (
         <>
           <ResponsiveDialog
-            className="h-8 w-8 rounded bg-zinc-100 text-zinc-500 hover:bg-teal-600 hover:text-teal-50 px-[10px]"
+            className="h-8 w-8 rounded bg-zinc-100 text-zinc-500 hover:bg-[var(--primary-600)] hover:text-[var(--primary-50)] px-[10px]"
             title={`Redigera "${service.title}"`}
             open={openResponsiveDialog}
             setOpen={setOpenResponsiveDialog}

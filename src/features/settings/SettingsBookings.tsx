@@ -19,12 +19,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info, Loader2 } from "lucide-react";
+import { CalendarCog, Info, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useBookingSettings } from "./useBookingSettings";
 import { useEditBookingSettings } from "./useEditBookingSettings";
+import { Textarea } from "@/components/ui/textarea";
 
 type FormSchema = z.infer<typeof formSchema>;
 
@@ -49,6 +50,7 @@ const formSchema = z.object({
   calendarViewStart: z.string(),
   calendarViewEnd: z.string(),
   timeslotInterval: z.string(),
+  cancellationPolicy: z.string(),
 });
 
 export default function SettingsBookings() {
@@ -74,6 +76,7 @@ export default function SettingsBookings() {
       calendarViewStart: "",
       calendarViewEnd: "",
       timeslotInterval: "",
+      cancellationPolicy: "",
     },
     mode: "onChange",
   });
@@ -90,7 +93,10 @@ export default function SettingsBookings() {
         sunday: bookingSettings.calendarViewDays.includes(0),
         calendarViewStart: bookingSettings.calendarViewHours.startTime,
         calendarViewEnd: bookingSettings.calendarViewHours.endTime,
-        timeslotInterval: bookingSettings.timeslotInterval.toString(),
+        timeslotInterval: bookingSettings.timeslotInterval
+          ? bookingSettings.timeslotInterval.toString()
+          : "",
+        cancellationPolicy: bookingSettings.cancellationPolicy,
       });
     }
   }, [bookingSettings, form]);
@@ -111,6 +117,7 @@ export default function SettingsBookings() {
         endTime: data.calendarViewEnd,
       },
       timeslotInterval: parseInt(data.timeslotInterval),
+      cancellationPolicy: data.cancellationPolicy,
       id: 1,
     };
     onEditBookingSettings(newSettings);
@@ -126,15 +133,15 @@ export default function SettingsBookings() {
             <Card className="p-4 space-y-3">
               <div className="space-y-3">
                 <div className="flex items-center justify-between space-x-2">
-                  <h4 className="scroll-m-20 text-md font-semibold tracking-tight">
-                    Bokningsdagar
+                  <h4 className="scroll-m-20 text-md font-semibold tracking-tight text-[var(--primary-600)]">
+                    Kalenderdagar
                   </h4>
                   <Info
-                    className="cursor-pointer text-teal-700"
+                    className="cursor-pointer text-[var(--primary-700)]"
                     onClick={() =>
                       setDialogInfo({
                         open: true,
-                        title: "Bokningsdagar",
+                        title: "Kalenderdagar",
                         description:
                           "Växla på de veckodagar du vill visa i bokningskalendern.",
                       })
@@ -182,7 +189,7 @@ export default function SettingsBookings() {
                     Kalendertimmar
                   </h4>
                   <Info
-                    className="cursor-pointer text-teal-700"
+                    className="cursor-pointer text-[var(--primary-700)]"
                     onClick={() =>
                       setDialogInfo({
                         open: true,
@@ -264,7 +271,7 @@ export default function SettingsBookings() {
                     Bokningsintervall
                   </h4>
                   <Info
-                    className="cursor-pointer text-teal-700"
+                    className="cursor-pointer text-[var(--primary-700)]"
                     onClick={() =>
                       setDialogInfo({
                         open: true,
@@ -293,7 +300,7 @@ export default function SettingsBookings() {
                           <SelectValue placeholder="Välj ett tidsintervall" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="05">05</SelectItem>
+                          <SelectItem value="5">5</SelectItem>
                           <SelectItem value="10">10</SelectItem>
                           <SelectItem value="15">15</SelectItem>
                           <SelectItem value="20">20</SelectItem>
@@ -302,6 +309,42 @@ export default function SettingsBookings() {
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
+                />
+              </div>
+            </Card>
+
+            <Card className="p-4 space-y-3">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between space-x-2">
+                  <h4 className="scroll-m-20 text-md font-semibold tracking-tight">
+                    Avbokningspolicy
+                  </h4>
+                  <Info
+                    className="cursor-pointer text-[var(--primary-700)]"
+                    onClick={() =>
+                      setDialogInfo({
+                        open: true,
+                        title: "Avbokningspolicy",
+                        description:
+                          "Fyll i din avbokningspolicy här. Den visas för kunderna när de bokar.",
+                      })
+                    }
+                    strokeWidth={1.5}
+                    size={16}
+                  />
+                </div>
+              </div>
+              <div>
+                <Controller
+                  name="cancellationPolicy"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Textarea
+                      {...field}
+                      className="w-full h-32 p-2 border border-zinc-200 rounded-md"
+                      placeholder="Skriv din avbokningspolicy här"
+                    />
                   )}
                 />
               </div>
@@ -316,10 +359,13 @@ export default function SettingsBookings() {
                   <>
                     <Loader2 className="animate-spin" /> <span>Sparar</span>
                   </>
-                ) : !form.formState.isValid || !form.formState.isDirty ? (
-                  "Sparat"
                 ) : (
-                  "Spara"
+                  <>
+                    <CalendarCog strokeWidth={1.5} />{" "}
+                    {!form.formState.isValid || !form.formState.isDirty
+                      ? "Sparat"
+                      : "Spara"}
+                  </>
                 )}
               </Button>
             </div>

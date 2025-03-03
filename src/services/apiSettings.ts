@@ -1,6 +1,12 @@
 import { uploadImageToBucket } from "@/lib/helpers";
 import { supabase } from "./supabase";
-import { BookingSettingsType, StaffType, WorkdayType } from "./types";
+import {
+  BookingSettingsType,
+  CompanySettingsType,
+  GeneralSettingsType,
+  StaffType,
+  WorkdayType,
+} from "./types";
 
 type EditStaffType = Omit<StaffType, "image" | "created_at" | "isActive"> & {
   image?: File | undefined;
@@ -88,6 +94,59 @@ export async function editBookingSettings(
     .from("booking_settings")
     .update({ ...newSettings })
     .eq("id", id);
+
+  if (error) {
+    console.error("Inställningarna kunde inte uppdateras.");
+    throw new Error("Inställningarna kunde inte uppdateras.");
+  }
+}
+
+export async function getCompanySettings(): Promise<CompanySettingsType> {
+  const { data, error } = await supabase.from("company_settings").select();
+
+  if (error) {
+    console.error("Inställningarna kunde inte hämtas.");
+    throw new Error("Inställningarna kunde inte hämtas.");
+  }
+
+  return data.at(0);
+}
+
+export async function editCompanySettings(
+  settings: Omit<CompanySettingsType, "companyLogo"> & { companyLogo?: File }
+): Promise<void> {
+  const { id, ...newSettings } = settings;
+  const image = await uploadImageToBucket(newSettings.companyLogo);
+
+  const { error } = await supabase
+    .from("company_settings")
+    .update({ ...newSettings, companyLogo: image })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Inställningarna kunde inte uppdateras.");
+    throw new Error("Inställningarna kunde inte uppdateras.");
+  }
+}
+
+export async function getGeneralSettings(): Promise<GeneralSettingsType> {
+  const { data, error } = await supabase.from("general_settings").select();
+
+  if (error) {
+    console.error("Inställningarna kunde inte hämtas.");
+    throw new Error("Inställningarna kunde inte hämtas.");
+  }
+
+  return data.at(0);
+}
+
+export async function editGeneralSettings(
+  settings: Omit<GeneralSettingsType, "id">
+): Promise<void> {
+  const { error } = await supabase
+    .from("general_settings")
+    .update({ ...settings })
+    .eq("id", 1);
 
   if (error) {
     console.error("Inställningarna kunde inte uppdateras.");

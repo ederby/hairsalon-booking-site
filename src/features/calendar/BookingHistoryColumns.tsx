@@ -37,8 +37,8 @@ export function bookingHistoryColumns(
         return (
           <Button
             variant="ghost"
-            className={`px-0 gap-0 hover:bg-transparent hover:text-teal-600 ${
-              currentSorted === "date" ? "text-teal-600" : ""
+            className={`px-0 gap-0 hover:bg-transparent hover:text-[var(--primary-600)] ${
+              currentSorted === "date" ? "text-[var(--primary-600)]" : ""
             }`}
             onClick={() => {
               setCurrentSorted("date");
@@ -63,8 +63,8 @@ export function bookingHistoryColumns(
         return (
           <Button
             variant="ghost"
-            className={`px-0 gap-0 hover:bg-transparent hover:text-teal-600 ${
-              currentSorted === "service" ? "text-teal-600" : ""
+            className={`px-0 gap-0 hover:bg-transparent hover:text-[var(--primary-600)] ${
+              currentSorted === "service" ? "text-[var(--primary-600)]" : ""
             }`}
             onClick={() => {
               setCurrentSorted("service");
@@ -89,8 +89,8 @@ export function bookingHistoryColumns(
         <div className="text-right">
           <Button
             variant="ghost"
-            className={`px-0 gap-0 hover:bg-transparent hover:text-teal-600 ${
-              currentSorted === "status" ? "text-teal-600" : ""
+            className={`px-0 gap-0 hover:bg-transparent hover:text-[var(--primary-600)] ${
+              currentSorted === "status" ? "text-[var(--primary-600)]" : ""
             }`}
             onClick={() => {
               setCurrentSorted("status");
@@ -138,8 +138,10 @@ export function bookingHistoryColumns(
           <div className="text-right">
             <Button
               variant="ghost"
-              className={`px-0 gap-0 hover:bg-transparent hover:text-teal-600 ${
-                currentSorted === "customerName" ? "text-teal-600" : ""
+              className={`px-0 gap-0 hover:bg-transparent hover:text-[var(--primary-600)] ${
+                currentSorted === "customerName"
+                  ? "text-[var(--primary-600)]"
+                  : ""
               }`}
               onClick={() => {
                 setCurrentSorted("customerName");

@@ -517,11 +517,12 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = "SidebarMenuItem";
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-teal-600 transition-[width,height,padding] hover:bg-teal-200 hover:text-teal-400 focus-visible:ring-2 active:bg-teal-100 active:text-sidebar-teal-50 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-teal-100 data-[active=true]:font-medium data-[active=true]:text-sidebar-teal-800 data-[state=open]:hover:bg-teal-100 data-[state=open]:hover:text-sidebar-teal-100 group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-[var(--primary-600)] transition-[width,height,padding] hover:bg-[var(--primary-200)] hover:text-[var(--primary-400)] focus-visible:ring-2 active:bg-[var(--primary-100)] active:text-sidebar-[var(--primary-50)] disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-[var(--primary-100)] data-[active=true]:font-medium data-[active=true]:text-sidebar-[var(--primary-800)] data-[state=open]:hover:bg-[var(--primary-100)] data-[state=open]:hover:text-sidebar-[var(--primary-100)] group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "hover:bg-teal-50 hover:text-sidebar-accent-foreground",
+        default:
+          "hover:bg-[var(--primary-50)] hover:text-sidebar-accent-foreground",
         outline:
           "bg-white shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))] dark:bg-zinc-950",
       },

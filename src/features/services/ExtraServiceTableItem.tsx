@@ -31,7 +31,7 @@ export default function ExtraServiceTableItem({
   return (
     <TableRow
       className={`${openAlertDialog ? "bg-red-100" : ""} ${
-        openResponsiveDialog ? "bg-teal-100" : ""
+        openResponsiveDialog ? "bg-[var(--primary-100)]" : ""
       }`}
     >
       <TableCell colSpan={2} className="font-medium">
@@ -90,7 +90,7 @@ export default function ExtraServiceTableItem({
         />
 
         <ResponsiveDialog
-          className="absolute right-10 top-6 h-8 w-8 rounded bg-zinc-100 text-zinc-500 hover:bg-teal-600 hover:text-teal-50 px-[10px]"
+          className="absolute right-10 top-6 h-8 w-8 rounded bg-zinc-100 text-zinc-500 hover:bg-[var(--primary-600)] hover:text-[var(--primary-50)] px-[10px]"
           title={`Redigera "${title}"`}
           open={openResponsiveDialog}
           setOpen={setOpenResponsiveDialog}

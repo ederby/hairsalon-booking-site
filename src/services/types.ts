@@ -171,4 +171,16 @@ export type BookingSettingsType = {
     startTime: string;
   };
   calendarViewDays: number[];
+  cancellationPolicy: string;
+};
+
+export type CompanySettingsType = {
+  id: number;
+  companyName: string;
+  companyLogo: string;
+};
+
+export type GeneralSettingsType = {
+  id: number;
+  colorScheme: string;
 };

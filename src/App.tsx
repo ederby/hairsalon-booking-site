@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import PageNotFound from "./pages/PageNotFound";
 import Services from "./pages/Services";
 import Settings from "./pages/Settings";
+import { ColorSchemeProvider } from "./context/ColorSchemeProvider";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,18 +22,20 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ReactQueryDevtools initialIsOpen={false} />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route index element={<Navigate replace to="dashboard" />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="services" element={<Services />} />
-            <Route path="calendar" element={<Calendar />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="*" element={<PageNotFound />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <ColorSchemeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route index element={<Navigate replace to="dashboard" />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="services" element={<Services />} />
+              <Route path="calendar" element={<Calendar />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="*" element={<PageNotFound />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </ColorSchemeProvider>
     </QueryClientProvider>
   );
 }

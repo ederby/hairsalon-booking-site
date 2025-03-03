@@ -94,7 +94,7 @@ export default function AddStaffForm({
               <FormLabel>Välj en bild</FormLabel>
               <FormControl>
                 <Input
-                  className="pt-1.5 file:text-teal-600 focus-visible:ring-teal-600"
+                  className="pt-1.5 file:text-[var(--primary-600)] focus-visible:ring-[var(--primary-600)]"
                   type="file"
                   id={value?.name}
                   onChange={(event) =>

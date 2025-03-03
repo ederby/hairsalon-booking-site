@@ -89,7 +89,7 @@ export default function Schedule(): JSX.Element {
     return (
       <div
         className={`p-1 py-2 whitespace-normal ${
-          props.Break ? "text-zinc-600" : "text-teal-600"
+          props.Break ? "text-zinc-600" : "text-[var(--primary-600)]"
         }`}
       >
         <h4 className="font-semibold">{props.Subject}</h4>
@@ -110,18 +110,20 @@ export default function Schedule(): JSX.Element {
   }) {
     const isBreak = "Break" in args.data && args.data.Break;
     const subject = "Subject" in args.data && args.data.Subject;
-
-    args.element.style.backgroundColor = isBreak
-      ? "#d4d4d8"
-      : subject === "Start av dagen" || subject === "Slutet av dagen"
-      ? "#0D9488"
-      : "#CCFBF1";
-
-    args.element.style.borderColor = isBreak
-      ? "#d4d4d8"
-      : subject === "Start av dagen" || subject === "Slutet av dagen"
-      ? "#0D9488"
-      : "#CCFBF1";
+    args.element.classList.add(
+      isBreak
+        ? "#d4d4d8"
+        : subject === "Start av dagen" || subject === "Slutet av dagen"
+        ? "!bg-[var(--primary-600)]"
+        : "!bg-[var(--primary-200)]"
+    );
+    args.element.classList.add(
+      isBreak
+        ? "#d4d4d8"
+        : subject === "Start av dagen" || subject === "Slutet av dagen"
+        ? "!border-[var(--primary-600)]"
+        : "!border-[var(--primary-200)]"
+    );
   }
 
   function handleDialogClose(isOpen: boolean) {

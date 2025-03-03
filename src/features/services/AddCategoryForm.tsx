@@ -174,7 +174,7 @@ export default function AddCategoryForm({
               <FormLabel className="block">Välj en bild</FormLabel>
               <FormControl>
                 <Input
-                  className="pt-1.5 file:text-teal-600 focus-visible:ring-teal-600"
+                  className="pt-1.5 file:text-[var(--primary-600)] focus-visible:ring-[var(--primary-600)]"
                   type="file"
                   id={value?.name}
                   accept="image/jpeg, image/png"
@@ -235,9 +235,9 @@ export default function AddCategoryForm({
                             value={s.name}
                             variant="outline"
                             aria-label={s.name}
-                            className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-foreground file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:cursor-not-allowed disabled:opacity-50 file:cursor-pointer ${
+                            className={`flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-foreground file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-600)] disabled:cursor-not-allowed disabled:opacity-50 file:cursor-pointer ${
                               staffsActive?.includes(s.id)
-                                ? "bg-teal-600 text-white hover:bg-teal-600 hover:text-white"
+                                ? "bg-[var(--primary-600)] text-white hover:bg-[var(--primary-600)] hover:text-white"
                                 : ""
                             }`}
                           >

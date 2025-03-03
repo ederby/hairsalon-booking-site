@@ -95,7 +95,7 @@ export default function CustomExtraservicesDropdown<T extends FieldValues>({
           ?.filter((service) => selectedExtraServices.includes(service.id))
           .map((service) => (
             <li
-              className="flex gap-1 bg-teal-600 text-teal-50 py-1 px-2 rounded font-semibold"
+              className="flex gap-1 bg-[var(--primary-600)] text-[var(--primary-50)] py-1 px-2 rounded font-semibold"
               key={service.id}
             >
               <X

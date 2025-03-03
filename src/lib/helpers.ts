@@ -22,8 +22,8 @@ export async function uploadImageToBucket(
       .upload(imageName, image);
 
     if (storageError) {
-      console.error("Category could not be edited.");
-      throw new Error("Category could not be edited.");
+      console.error("File could not be uploaded.");
+      throw new Error("File could not be uploaded.");
     }
   }
 
